@@ -11,6 +11,9 @@ class TestSwissQr < Minitest::Test
     assert_equal %i[payload strict], SwissQr.method(:parse).parameters.map(&:last)
     assert_respond_to SwissQr, :valid?
     assert_respond_to SwissQr, :qr_bill?
+    assert_equal %i[input reader strict], SwissQr.method(:read).parameters.map(&:last)
+    assert_equal %i[input reader strict], SwissQr.method(:read_all).parameters.map(&:last)
+    assert_respond_to SwissQr, :reader=
   end
 
   def test_error_hierarchy
@@ -19,7 +22,11 @@ class TestSwissQr < Minitest::Test
     assert_operator SwissQr::Error, :<, StandardError
   end
 
-  def test_parser_has_no_runtime_dependency_on_qr_reader
-    refute $LOADED_FEATURES.any? { |f| f.include?("qr_reader") }, "qr_reader must only be loaded on demand"
+  # Whether qr_reader stays unloaded until a read is checked in a subprocess
+  # in test_reader.rb (other tests in this process load it).
+  def test_gemspec_has_no_qr_reader_runtime_dependency
+    spec = Gem::Specification.load(File.expand_path("../swiss_qr.gemspec", __dir__))
+    assert_equal ["bigdecimal"], spec.runtime_dependencies.map(&:name)
+    assert_includes spec.executables, "swiss_qr"
   end
 end

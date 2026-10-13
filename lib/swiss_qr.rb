@@ -10,8 +10,8 @@ require_relative "swiss_qr/bill_information"
 require_relative "swiss_qr/bill"
 require_relative "swiss_qr/validation"
 require_relative "swiss_qr/parser"
-# Reading QR codes from images/PDFs (SwissQr.read, .read_all, .reader) lives
-# in swiss_qr/reader; it is required here once it exists.
+# SwissQr.read, .read_all and .reader; does not load the qr_reader gem.
+require_relative "swiss_qr/reader"
 
 # Parser for the payload of Swiss QR-bills ("QR-Rechnung", SIX Swiss
 # Implementation Guidelines for the QR-bill: header "SPC", version "0200",
@@ -22,6 +22,9 @@ require_relative "swiss_qr/parser"
 #   bill.amount           # => 0.194975e4 (BigDecimal)
 #   bill.creditor.name    # => "Max Muster & Söhne"
 #   bill.swico&.invoice_number
+#
+#   SwissQr.read("invoice.pdf")      # first QR-bill in an image or PDF (needs a reader,
+#                                    # by default the qr_reader gem)
 module SwissQr
   module_function
 

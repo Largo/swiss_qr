@@ -5,6 +5,56 @@ module SwissQr
   def self.valid?: (untyped payload) -> bool
   def self.qr_bill?: (untyped text) -> bool
 
+  # Anything with decode_all(input) -> Array[String], or a callable returning
+  # a String, an Array of Strings (or objects with #text), or nil.
+  type reader = _DecodeAll | _CallReader
+
+  interface _DecodeAll
+    def decode_all: (untyped input) -> Array[untyped]
+  end
+
+  interface _CallReader
+    def call: (untyped input) -> (String | Array[untyped] | nil)
+  end
+
+  def self.reader: () -> reader
+  def self.reader=: (reader? reader) -> reader?
+  def self.read: (untyped input, ?reader: reader?, ?strict: bool) -> Bill?
+  def self.read_all: (untyped input, ?reader: reader?, ?strict: bool) -> Array[Bill]
+
+  module Reader
+    INSTALL_HINT: String
+
+    class QrReaderAdapter
+      NO_IMAGES: String
+
+      def decode_all: (untyped input) -> Array[String]
+      def each_text: (untyped input) { (String text) -> void } -> untyped
+    end
+
+    class Adapter
+      attr_reader reader: reader
+
+      def initialize: (reader reader) -> void
+      def decode_all: (untyped input) -> Array[String]
+      def each_text: (untyped input) { (String text) -> void } -> untyped
+    end
+
+    def self.reader?: (untyped reader) -> bool
+    def self.adapt: (reader? reader) -> Adapter
+    def self.texts: (untyped result) -> Array[String]
+    def self.text: (untyped item) -> String?
+  end
+
+  class CLI
+    OK: Integer
+    INVALID: Integer
+    FAILURE: Integer
+
+    def initialize: (?stdin: IO | StringIO, ?stdout: IO | StringIO, ?stderr: IO | StringIO) -> void
+    def run: (Array[String] argv) -> Integer
+  end
+
   class Error < StandardError
   end
 

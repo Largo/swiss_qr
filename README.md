@@ -1,28 +1,37 @@
 # SwissQr
 
-Parses and validates the payload of the Swiss QR Code printed on a Swiss
-QR-bill ("QR-Rechnung", "QR-facture"), as defined by the SIX *Swiss
+Parses and validates the Swiss QR Code printed on a Swiss QR-bill
+("QR-Rechnung", "QR-facture", "QR-fattura"), as defined by the SIX *Swiss
 Implementation Guidelines for the QR-bill* (QR type `SPC`, version `0200`,
-coding type `1`, trailer `EPD`).
+coding type `1`, trailer `EPD`). It can also find the code in images and PDFs.
 
-- No runtime dependencies besides `bigdecimal`.
-- Immutable value objects (`Data`): `SwissQr::Bill`, `SwissQr::Address`,
+- **Parser with no dependencies** other than `bigdecimal`. Values come back as
+  immutable `Data` objects: `SwissQr::Bill`, `SwissQr::Address` and
   `SwissQr::BillInformation` (Swico/SIX "S1" billing information).
-- Checks every payload rule of IG 2.3: header, IBAN/QR-IBAN and check digits,
-  reference type against account, QR reference (mod 10 recursive) and ISO
-  11649 creditor reference (mod 97), amount format, currency, addresses,
-  reserved ultimate creditor, field lengths, character set, 997-character
-  limit, line separators.
-- Tolerates CR LF or LF, a final line break and trailing empty lines, which
-  real-world generators (SIX's own samples included) produce.
+- **Checks every payload rule:** header, IBAN and QR-IBAN check digits, the
+  reference type against the account, QR reference (modulo 10 recursive), ISO
+  11649 creditor reference (modulo 97), amount, currency, addresses, the
+  reserved ultimate creditor, field lengths, character set, the 997-character
+  limit and line separators.
+- **Tolerant where real generators deviate:** CR LF or LF, a final line break,
+  trailing empty lines and a byte order mark are accepted (SIX's own samples
+  have some of these).
+- **Reads QR codes from images and PDFs** through a pluggable reader. By
+  default this is the pure-Ruby [`qr_reader`](https://rubygems.org/gems/qr_reader)
+  gem, which is optional and loaded only when you call `SwissQr.read`. Any
+  other decoder (ZXing, ZBar, a cloud API, ...) can be plugged in instead.
+- **`swiss_qr` command** that prints bills as JSON.
 
 ## Installation
 
 ```bash
 bundle add swiss_qr
+bundle add qr_reader    # optional: only needed for SwissQr.read / read_all and the CLI
 ```
 
-## Usage
+or `gem install swiss_qr qr_reader`. Requires Ruby 3.2 or newer.
+
+## Parsing a payload
 
 ```ruby
 require "swiss_qr"
@@ -32,46 +41,203 @@ bill.account                         # => "CH4431999123000889012"
 bill.qr_iban?                        # => true
 bill.formatted_account               # => "CH44 3199 9123 0008 8901 2"
 bill.amount                          # => 0.194975e4 (BigDecimal, nil when open)
+bill.formatted_amount                # => "1949.75"
 bill.currency                        # => "CHF"
 bill.creditor.name                   # => "Max Muster & Söhne"
 bill.creditor.lines                  # => ["Max Muster & Söhne", "Musterstrasse 123", "8000 Seldwyla"]
 bill.debtor&.town                    # => "Seldwyla"
 bill.reference_type                  # => :qrr (:qrr, :scor or :non)
+bill.reference                       # => "210000000003139471430009017"
 bill.formatted_reference             # => "21 00000 00003 13947 14300 09017"
 bill.unstructured_message            # => "Order from 15.10.2020"
 bill.swico&.invoice_number           # => "1234"
+bill.swico&.invoice_date             # => Date.new(2020, 10, 21)
 bill.swico&.payment_conditions       # => [#<data PaymentCondition discount=0.0, days=30>]
-bill.alternative_procedures          # => ["eBill/B/simon.muster@example.com"]
+bill.alternative_procedures          # => ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"]
 bill.warnings                        # => [] (e.g. legacy address type "K")
-bill.to_h                            # Ruby types (BigDecimal, Date, Symbol)
-bill.to_json                         # JSON (amount as "1949.75")
+bill.to_h                            # Ruby types (BigDecimal, Date, Symbol), nested hashes
+bill.to_json                         # JSON (amount as "1949.75", symbols as strings)
 ```
 
-### Lenient parsing
+The payload is the decoded text of the QR code: a String, ideally UTF-8.
+Binary strings are taken as UTF-8, and strings in other encodings are
+transcoded.
 
 ```ruby
+SwissQr.valid?(payload)              # => true / false, never raises
+SwissQr.qr_bill?(text)               # cheap "starts like SPC/0200" check, no validation
+```
+
+## Reading QR-bills from images and PDFs
+
+```ruby
+require "swiss_qr"
+
+bill  = SwissQr.read("invoice.pdf")      # first QR-bill found, or nil
+bills = SwissQr.read_all("scans.pdf")    # every QR-bill on every page, [] when none
+```
+
+`input` is passed to the reader unchanged. With the default reader
+(`qr_reader`) it can be:
+
+- a file path (`String` or `Pathname`),
+- an `IO`,
+- a binary `String` with the image bytes,
+- a `ChunkyPNG::Image`-like object (`#width`, `#height`, `#pixels`).
+
+Supported formats are PNG, JPEG, JPEG 2000, GIF, BMP, PNM and TIFF (including
+fax), and PDFs (scanned pages, as well as vector-drawn codes in generated
+PDFs). The Swiss cross in the middle of the code is no problem.
+
+Other QR codes on the page, such as a link to an online portal or a TWINT code,
+are skipped: only texts for which `SwissQr.qr_bill?` is true are parsed. `read`
+stops at the first QR-bill. With the default reader it does not decode the
+rest of a long PDF.
+
+`strict:` works as for `parse` (see below). With the default `strict: true`, an
+invalid QR-bill in the image raises `SwissQr::InvalidPayload`. A QR code that
+does not start with `SPC` is not a QR-bill, so it is skipped and does not
+raise. Errors from the reader itself propagate: `Errno::ENOENT` for a missing
+file, and `QrReader::ImageError` or `QrReader::UnsupportedImageError` for
+unreadable data.
+
+### Choosing or replacing the QR code reader
+
+`SwissQr` does not decode QR codes itself. It asks a *reader* for the texts of
+all codes in the input. A reader is either:
+
+- **an object with `decode_all(input)`** that returns an Array of Strings (the
+  `QrReader` module is one), or
+- **a callable** (Proc, lambda, `Method`, any object with `#call(input)`) that
+  returns a String, an Array of Strings, or `nil`.
+
+Elements may also be result objects with a `#text` method (for example
+`QrReader::Result`). `nil` elements are ignored.
+
+The default reader is `SwissQr::Reader::QrReaderAdapter`. Creating it does not
+load anything. It runs `require "qr_reader"` on the first read. If the gem is
+missing, the read raises `SwissQr::ReaderUnavailable`, and the message says how
+to install the gem (`gem install qr_reader` or `bundle add qr_reader`) or to set
+another reader. `require "swiss_qr"` never loads `qr_reader`.
+
+Replace the reader for the whole process, or pass one per call:
+
+```ruby
+# qr_reader with options (fail fast on pages without a code)
+SwissQr.reader = ->(input) { QrReader.decode_all(input, try_harder: false) }
+
+# any object with decode_all
+class MyZxingReader
+  def decode_all(path) = ZXing.decode_all(path)   # e.g. the zxing gem (JRuby)
+end
+SwissQr.reader = MyZxingReader.new
+
+# ZBar's command-line tool, for images that carry a single code
+# (zbarimg --raw cannot separate several multi-line codes)
+require "open3"
+SwissQr.reader = lambda do |path|
+  out, status = Open3.capture2("zbarimg", "--quiet", "--raw", "-Sdisable", "-Sqrcode.enable", path.to_s)
+  status.success? ? out.chomp : nil
+end
+
+# per call; the global reader is unchanged
+SwissQr.read("scan.png", reader: ->(path) { my_cloud_ocr(path) })
+
+SwissQr.reader = nil                       # back to the default (qr_reader)
+```
+
+`SwissQr.reader=` checks that the object responds to `#decode_all` or `#call`
+and raises `ArgumentError` otherwise. A reader that returns anything other
+than Strings (or objects with `#text`) makes `read` raise `TypeError`.
+
+Assigning `SwissQr.reader` is thread-safe, but the reader is global to the
+process. Assign it once at boot, or pass `reader:` per call.
+
+## Validation and strict mode
+
+```ruby
+SwissQr.parse(payload)                     # strict: true (default) raises on any error
 bill = SwissQr.parse(payload, strict: false)
-bill.valid?                          # => false
-bill.errors.map(&:to_s)              # => ["reference: QR reference check digit (modulo 10 recursive) is wrong: ..."]
+bill.valid?                                # => false
+bill.errors.map(&:to_s)                    # => ["reference: QR reference check digit (modulo 10 recursive) is wrong: ..."]
+bill.warnings                              # problems that do not make the bill invalid
 ```
 
-`strict: false` returns the bill with `errors` filled in. It still raises
-`SwissQr::InvalidPayload` when the text is not a QR-bill at all (QR type is
-not `SPC`, fewer than 31 lines). Each `SwissQr::Problem` has a `field`
-symbol (`:account`, `:"creditor.name"`, `:reference`, `:payload`, …) and a
-`message`. `SwissQr::InvalidPayload#errors` lists all of them and `#bill` holds
-the partially parsed bill.
+- **`strict: true`** raises `SwissQr::InvalidPayload` when there is any error.
+  `#errors` lists every `SwissQr::Problem`, and `#bill` holds the partially
+  parsed bill.
+- **`strict: false`** returns the bill with `errors` filled in. It still raises
+  `InvalidPayload` when the text is not structurally a QR-bill: the QR type is
+  not `SPC`, or there are fewer than 31 lines. `#bill` is `nil` then.
+- A **`SwissQr::Problem`** has a `field` symbol (`:account`, `:"creditor.name"`,
+  `:reference`, `:payload`, ...) and a `message`. `problem.about?(:creditor)`
+  matches all creditor fields.
+- **Warnings** never make a bill invalid. Billing information and alternative
+  procedures have status "A" in the guidelines (errors there must not lead to
+  rejection), so only warnings are given for them. Other warnings: legacy
+  address type `K`, a removed BOM, trailing blanks, a lower-case country code.
 
-```ruby
-SwissQr.valid?(payload)              # => true / false
-SwissQr.qr_bill?(text)               # cheap "looks like SPC" check, e.g. to skip other QR codes
-```
+Errors: `SwissQr::Error` (base) → `SwissQr::InvalidPayload`,
+`SwissQr::ReaderUnavailable`.
 
-Billing information and alternative procedures have status "A" in the
-guidelines: errors there must not make a bill be rejected, so they only produce
-warnings. Address type "K" (combined address) was removed in IG 2.3; it is
-still parsed (`address.combined?`, `address_line1`, `address_line2`) with a
-warning.
+## Value objects
+
+All three are immutable (`Data`) and support `#to_h`, `#as_json` and `==`.
+
+### `SwissQr::Bill`
+
+| Field | Type | Notes |
+|---|---|---|
+| `version` | String | `"0200"` |
+| `coding_type` | String | `"1"` (UTF-8, Latin character set) |
+| `account` | String | IBAN or QR-IBAN, no spaces, upper case (`formatted_account` adds spaces) |
+| `qr_iban` | Boolean | Also `qr_iban?`. QR-IID 30000–31999 |
+| `creditor` | Address | Required |
+| `ultimate_creditor` | Address, nil | Reserved by SIX. Must be empty, so always `nil` in a valid bill |
+| `amount` | BigDecimal, nil | `nil` = open amount (`open_amount?`). `0.00` = notification (`notification?`). `formatted_amount` gives `"50.00"` |
+| `currency` | String | `"CHF"` or `"EUR"` |
+| `debtor` | Address, nil | Optional |
+| `reference_type` | Symbol | `:qrr` (QR reference, needs QR-IBAN), `:scor` (ISO 11649 creditor reference) or `:non` |
+| `reference` | String, nil | As given. `formatted_reference` groups the digits |
+| `unstructured_message` | String, nil | Free text |
+| `trailer` | String | `"EPD"` |
+| `bill_information` | String, nil | Raw billing information (line 32) |
+| `swico` | BillInformation, nil | Only when `bill_information` starts with `//S1/` |
+| `alternative_procedures` | Array of String | At most 2 (e.g. `"eBill/B/..."`) |
+| `errors`, `warnings` | Array of Problem | `valid?` is `errors.empty?` |
+| `raw` | String | The payload as given (UTF-8) |
+
+### `SwissQr::Address`
+
+| Field | Notes |
+|---|---|
+| `type` | `:structured` (`S`) or `:combined` (`K`, legacy). Also `structured?` and `combined?` |
+| `name` | Name or company |
+| `street`, `building_number` | Type `S` only |
+| `postal_code`, `town` | Type `S` only |
+| `address_line1`, `address_line2` | Type `K` only (street and number, then postal code and town) |
+| `country` | ISO 3166-1 alpha-2, e.g. `"CH"` |
+
+`#lines` gives the postal lines for display. `#to_s` joins them with line
+breaks.
+
+### `SwissQr::BillInformation` (Swico S1)
+
+| Field | S1 tag | Type |
+|---|---|---|
+| `invoice_number` | `/10/` | String |
+| `invoice_date` | `/11/` | Date |
+| `customer_reference` | `/20/` | String |
+| `vat_number` | `/30/` | String (UID digits without `CHE`) |
+| `vat_dates` | `/31/` | Array of Date (one date, or start and end of a period) |
+| `vat_details` | `/32/` | Array of `VatRate(rate, amount)` |
+| `vat_import_taxes` | `/33/` | Array of `VatRate(rate, amount)` |
+| `payment_conditions` | `/40/` | Array of `PaymentCondition(discount, days)` |
+| `unknown_tags` | other tags | Hash |
+| `warnings`, `raw` | | |
+
+`SwissQr::BillInformation.parse("//S1/10/10201409/11/190512/32/7.7/40/2:10;0:30")`
+parses a string directly.
 
 ### Helpers
 
@@ -81,24 +247,68 @@ SwissQr::Iban.qr_iban?("CH4431999123000889012")       # => true
 SwissQr::Iban.format("CH4431999123000889012")         # => "CH44 3199 9123 0008 8901 2"
 SwissQr::Reference.valid_qrr?("210000000003139471430009017")   # => true
 SwissQr::Reference.valid_scor?("RF18 5390 0754 7034")          # => true
-SwissQr::Reference.qrr("21000000000313947143000901")           # => "210000000003139471430009017"
+SwissQr::Reference.qrr("21000000000313947143000901")           # => "210000000003139471430009017" (adds the check digit)
 SwissQr::Reference.scor("539007547034")                        # => "RF18539007547034"
 SwissQr::Reference.format_qrr("210000000003139471430009017")   # => "21 00000 00003 13947 14300 09017"
 SwissQr::Reference.format_scor("RF18539007547034")             # => "RF18 5390 0754 7034"
-SwissQr::BillInformation.parse("//S1/10/10201409/11/190512/32/7.7/40/2:10;0:30")
 ```
 
-## Specification
+## Supported specification
 
-`docs/SPEC_NOTES.md` digests the SIX documents (IG 2.2–2.4, processing
-rules, QR-IID, S1 syntax) with a source for every rule. The test fixtures in
-`test/fixtures` include the official SIX sample QR codes.
+- **Swiss Implementation Guidelines for the QR-bill, version 2.3** (in force
+  since November 2025). The payload version is `0200`.
+- **Version 2.4** (in force from 14 November 2026) does not change the payload
+  version, so the two cannot be told apart from the payload. Its main new rule
+  (QR-IBAN with a QR reference only in CHF) is reported as a warning on
+  `currency`.
+- **Version 2.2 and older:** address type `K` (combined address), removed in
+  2.3, is still parsed (`address_line1`, `address_line2`) with a warning.
+- **Billing information:** the SIX/Swico "S1" syntax (IG Annex D).
+- **Not yet published:** master version `03`, which is when the payload version
+  string will start to change. It is not supported.
+
+`docs/SPEC_NOTES.md` digests the SIX documents (IG 2.2–2.4, processing rules,
+QR-IID, S1 syntax), with a source for every rule. The test fixtures in
+`test/fixtures` include the payloads of the official SIX sample QR codes.
+
+## Command line
+
+```console
+$ swiss_qr invoice.pdf scan.png        # all QR-bills in the files, as a JSON array
+[
+  {
+    "file": "invoice.pdf",
+    "version": "0200",
+    "account": "CH4431999123000889012",
+    "amount": "1949.75",
+    ...
+  }
+]
+$ swiss_qr --text < payload.txt         # parse a payload (the QR code's text) from stdin
+$ swiss_qr - < scan.png                 # image from stdin
+$ swiss_qr --lines *.pdf                # one compact JSON object per line
+$ swiss_qr --no-strict broken.png       # print invalid bills too, with their "errors"
+$ swiss_qr --version
+```
+
+Each JSON object is `Bill#as_json` plus `"file"` (`"-"` for stdin). Messages
+go to stderr.
+
+| Exit status | Meaning |
+|---|---|
+| 0 | Every input held at least one QR-bill, and all of them were valid |
+| 1 | An input held no QR-bill, or held an invalid one. With `--no-strict`, invalid bills are still printed |
+| 2 | Usage error, unreadable file, or no QR code reader (`gem install qr_reader`) |
+
+The command uses `SwissQr.reader`, so it needs `qr_reader` to be installed.
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies, then
-`bundle exec rake` to run the tests and RuboCop. `bin/console` gives an
-interactive prompt.
+After checking out the repo, run `bin/setup` to install dependencies (this
+includes `qr_reader`, `rqrcode` and `chunky_png` for the image tests). Then run
+`bundle exec rake` for the tests and RuboCop. `bin/console` gives an
+interactive prompt. `test/fixtures/README.md` explains how the fixtures are
+generated.
 
 ## License
 
