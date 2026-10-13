@@ -28,6 +28,9 @@ module SwissQr
     class QrReaderAdapter
       NO_IMAGES: String
 
+      attr_reader options: Hash[Symbol, untyped]
+
+      def initialize: (**untyped options) -> void
       def decode_all: (untyped input) -> Array[String]
       def each_text: (untyped input) { (String text) -> void } -> untyped
     end
@@ -188,6 +191,14 @@ module SwissQr
     def self.format: (String? iban) -> String
   end
 
+  module Countries
+    ISO_3166_1: Hash[String, true]
+    VEHICLE_CODES: Hash[String, String]
+    PREFIXED_POSTAL_CODES: Array[String]
+
+    def self.iso?: (String code) -> bool
+  end
+
   module Reference
     QRR_PATTERN: Regexp
     SCOR_PATTERN: Regexp
@@ -203,6 +214,10 @@ module SwissQr
   end
 
   class Parser
+    BOM: String
+    MISTAGGED_ENCODINGS: Array[Encoding]
+    HEADER: Regexp
+
     def self.parse: (String payload, ?strict: bool) -> Bill
     def self.qr_bill?: (untyped text) -> bool
     def initialize: (String payload) -> void

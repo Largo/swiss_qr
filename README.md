@@ -13,9 +13,9 @@ coding type `1`, trailer `EPD`). It can also find the code in images and PDFs.
   11649 creditor reference (modulo 97), amount, currency, addresses, the
   reserved ultimate creditor, field lengths, character set, the 997-character
   limit and line separators.
-- **Tolerant where real generators deviate:** CR LF or LF, a final line break,
-  trailing empty lines and a byte order mark are accepted (SIX's own samples
-  have some of these).
+- **Tolerant where real generators deviate:** CR LF or LF, a final line break
+  (of either kind), trailing empty lines, a byte order mark and blanks after
+  free text are accepted (SIX's own samples have some of these).
 - **Reads QR codes from images and PDFs** through a pluggable reader. By
   default this is the pure-Ruby [`qr_reader`](https://rubygems.org/gems/qr_reader)
   gem, which is optional and loaded only when you call `SwissQr.read`. Any
@@ -60,8 +60,12 @@ bill.to_json                         # JSON (amount as "1949.75", symbols as str
 ```
 
 The payload is the decoded text of the QR code: a String, ideally UTF-8.
-Binary strings are taken as UTF-8, and strings in other encodings are
-transcoded.
+Binary strings are taken as UTF-8, and strings in other encodings (UTF-16,
+UTF-32, real Latin-1, ...) are transcoded. A string tagged ISO-8859-1 or
+Windows-1252 whose bytes are valid UTF-8 is read as UTF-8 with a warning:
+many QR decoders tag byte-mode data that way, but a QR-bill is always UTF-8.
+Input longer than 4096 bytes (more than any QR code holds) is rejected with
+`InvalidPayload` before it is parsed.
 
 ```ruby
 SwissQr.valid?(payload)              # => true / false, never raises
@@ -123,8 +127,9 @@ another reader. `require "swiss_qr"` never loads `qr_reader`.
 Replace the reader for the whole process, or pass one per call:
 
 ```ruby
-# qr_reader with options (fail fast on pages without a code)
-SwissQr.reader = ->(input) { QrReader.decode_all(input, try_harder: false) }
+# qr_reader with options (fail fast on pages without a code); options are
+# passed on to qr_reader, which is still loaded only on the first read
+SwissQr.reader = SwissQr::Reader::QrReaderAdapter.new(try_harder: false)
 
 # any object with decode_all
 class MyZxingReader
@@ -145,6 +150,15 @@ SwissQr.read("scan.png", reader: ->(path) { my_cloud_ocr(path) })
 
 SwissQr.reader = nil                       # back to the default (qr_reader)
 ```
+
+Prefer `QrReaderAdapter.new(**options)` over `SwissQr.reader = QrReader` or a
+lambda calling `QrReader.decode_all` (which also needs `require "qr_reader"`):
+only the adapter returns no codes for a PDF without any image, where qr_reader
+itself raises `QrReader::UnsupportedImageError`, and only the adapter lets
+`read` stop decoding at the first QR-bill.
+
+A callable may return a single result object (anything with `#text`, such as a
+`Struct` or `Data`) instead of an Array; it counts as one code.
 
 `SwissQr.reader=` checks that the object responds to `#decode_all` or `#call`
 and raises `ArgumentError` otherwise. A reader that returns anything other
@@ -175,7 +189,10 @@ bill.warnings                              # problems that do not make the bill 
 - **Warnings** never make a bill invalid. Billing information and alternative
   procedures have status "A" in the guidelines (errors there must not lead to
   rejection), so only warnings are given for them. Other warnings: legacy
-  address type `K`, a removed BOM, trailing blanks, a lower-case country code.
+  address type `K`, a removed BOM, blanks around free text (names, street,
+  town, message), a UTF-8 payload tagged as Latin-1, a postal code that may
+  have a country prefix. Blanks around fixed-format elements (IBAN, amount,
+  codes, reference, country) are errors.
 
 Errors: `SwissQr::Error` (base) → `SwissQr::InvalidPayload`,
 `SwissQr::ReaderUnavailable`.

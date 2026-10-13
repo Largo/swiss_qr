@@ -14,9 +14,10 @@ module SwissQr
 
     module_function
 
-    # Removes all whitespace and upcases.
+    # Removes all whitespace and upcases ASCII letters (only those: "ſ" must
+    # not turn into "S").
     def normalize(iban)
-      iban.to_s.gsub(/[[:space:]]/, "").upcase
+      iban.to_s.gsub(/[[:space:]]/, "").upcase(:ascii)
     end
 
     # True for any IBAN with a valid structure and MOD 97-10 check digits.

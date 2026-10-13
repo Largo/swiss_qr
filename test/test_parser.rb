@@ -48,6 +48,21 @@ class TestParser < Minitest::Test
     assert_predicate SwissQr.parse("#{build_payload({}, separator: "\r\n")}\r\n\r\n"), :valid?
   end
 
+  # The trailing region is dropped before the separators are checked: a CR LF
+  # payload saved with one final LF (an editor, printf, a heredoc) is fine.
+  def test_trailing_region_may_use_another_separator
+    crlf = build_payload({}, separator: "\r\n")
+    lf = build_payload
+    ["#{crlf}\n", "#{crlf}\r\n\n", "#{crlf}\r\n \n", "#{crlf}\r", "#{lf}\r\n", "#{lf}\r", "#{lf}\n\r\n"].each do |text|
+      bill = SwissQr.parse(text)
+
+      assert_predicate bill, :valid?, text[-6..].inspect
+      assert_empty bill.warnings, text[-6..].inspect
+    end
+    refute SwissQr.valid?(build_payload({}, separator: "\r\n", extra: %w[//S1/10/1]).sub("EPD\r\n", "EPD\n")),
+           "mixed separators between kept lines are still an error"
+  end
+
   def test_trailing_empty_lines_after_alternative_procedures
     bill = SwissQr.parse(build_payload({}, extra: ["", "eBill/B/peter@sample.ch", "", ""]))
 
@@ -152,6 +167,17 @@ class TestParser < Minitest::Test
     refute SwissQr.qr_bill?(:SPC)
   end
 
+  # qr_bill? must not skip what parse treats as a (possibly invalid) QR-bill.
+  def test_qr_bill_agrees_with_parse_on_blanks_around_the_header
+    [{ 1 => "SPC " }, { 1 => " SPC" }, { 2 => "0200 " }].each do |overrides|
+      text = build_payload(overrides)
+
+      assert SwissQr.qr_bill?(text), overrides.inspect
+      assert_problem SwissQr.parse(text, strict: false).errors, %i[header version]
+      assert_raises(SwissQr::InvalidPayload) { SwissQr.read("x.png", reader: ->(_) { [text] }) }
+    end
+  end
+
   # --- encoding and character set -----------------------------------------
 
   def test_binary_input_is_read_as_utf8
@@ -165,6 +191,58 @@ class TestParser < Minitest::Test
     bill = SwissQr.parse(build_payload.encode(Encoding::ISO_8859_1))
 
     assert_equal "Max Muster & Söhne", bill.creditor.name
+  end
+
+  # Regression: check_size looked at the untranscoded payload and raised
+  # Encoding::CompatibilityError.
+  def test_ascii_incompatible_encodings_are_transcoded
+    [build_payload, build_payload({}, separator: "\r\n")].each do |text|
+      %w[UTF-16LE UTF-16BE UTF-32LE UTF-32BE].each do |encoding|
+        encoded = text.encode(encoding)
+
+        assert_equal "Max Muster & Söhne", SwissQr.parse(encoded).creditor.name, encoding
+        assert SwissQr.valid?(encoded), encoding
+        assert SwissQr.qr_bill?(encoded), encoding
+      end
+    end
+    with_bom = "\uFEFF#{build_payload}".encode("UTF-16BE")
+
+    assert_predicate SwissQr.parse(with_bom), :valid?
+    assert SwissQr.qr_bill?(with_bom)
+    utf7 = build_payload.b.force_encoding("UTF-7") # a dummy encoding without a converter
+
+    assert SwissQr.qr_bill?(utf7)
+    assert SwissQr.valid?(utf7)
+  end
+
+  # Readers following the ISO/IEC 18004 default tag byte segments as
+  # ISO-8859-1; coding type 1 means the bytes are UTF-8.
+  def test_utf8_bytes_tagged_latin1_are_read_as_utf8
+    %w[ISO-8859-1 Windows-1252].each do |encoding|
+      bill = SwissQr.parse(build_payload.dup.force_encoding(encoding))
+
+      assert_equal "Max Muster & Söhne", bill.creditor.name, encoding
+      assert_problem bill.warnings, :payload
+    end
+    assert_empty SwissQr.parse(build_payload.encode("ISO-8859-1")).warnings, "real Latin-1 is transcoded"
+  end
+
+  def test_oversized_input_is_rejected_early
+    huge = build_payload + ("\nx" * 1_000_000)
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    error = assert_raises(SwissQr::InvalidPayload) { SwissQr.parse(huge, strict: false) }
+
+    assert_operator Process.clock_gettime(Process::CLOCK_MONOTONIC) - started, :<, 1
+    assert_equal [:payload], error.errors.map(&:field)
+    refute SwissQr.valid?(huge)
+  end
+
+  def test_extra_lines_are_reported_once_and_ignored
+    bill = SwissQr.parse(build_payload({}, extra: ["", "AP1", "AP2"] + (["\u0001"] * 20)), strict: false)
+
+    assert_equal(1, bill.errors.count { |problem| problem.field == :payload })
+    assert_empty bill.warnings
+    assert_equal %w[AP1 AP2], bill.alternative_procedures
   end
 
   def test_invalid_utf8_is_an_error
@@ -214,6 +292,49 @@ class TestParser < Minitest::Test
     assert_nil bill.unstructured_message
   end
 
+  # IG 4.1.3: "It is not permitted to fill in the elements with blanks".
+  def test_blanks_around_fixed_format_elements_are_errors
+    {
+      1 => "SPC ", 2 => " 0200", 3 => "1 ", 4 => "CH4431999123000889012 ", 5 => "S ", 11 => " CH",
+      19 => "1949.75   ", 20 => "CHF ", 28 => "QRR ", 29 => "210000000003139471430009017   ", 31 => "EPD "
+    }.each do |line, value|
+      bill = SwissQr.parse(build_payload(line => value), strict: false)
+
+      refute_predicate bill, :valid?, "line #{line} = #{value.inspect}"
+      assert_raises(SwissQr::InvalidPayload, "line #{line}") { SwissQr.parse(build_payload(line => value)) }
+    end
+  end
+
+  def test_inner_and_trailing_blanks_in_the_iban_are_both_errors
+    ["CH4431999123000889012 ", "CH44 31999123000889012"].each do |account|
+      assert_problem SwissQr.parse(build_payload(4 => account), strict: false).errors, :account
+    end
+  end
+
+  def test_lines_of_blanks_instead_of_empty_lines_are_errors
+    bill = SwissQr.parse(build_payload((12..18).to_h { |line| [line, "   "] }), strict: false)
+
+    assert_nil bill.ultimate_creditor
+    assert_problem bill.errors, :ultimate_creditor
+
+    bill = SwissQr.parse(build_payload(4 => "CH9300762011623852957", 28 => "NON", 29 => " "), strict: false)
+
+    assert_problem bill.errors, :reference
+
+    bill = SwissQr.parse(build_payload(30 => "  "), strict: false)
+
+    assert_problem bill.errors, :unstructured_message
+  end
+
+  def test_blanks_in_status_a_lines_only_warn
+    bill = SwissQr.parse(build_payload({}, extra: [" //S1/10/1234", "  ", "AP2 "]))
+
+    assert_predicate bill, :valid?
+    assert_equal "//S1/10/1234", bill.bill_information
+    assert_problem bill.warnings, :bill_information
+    assert_problem bill.warnings, :alternative_procedures
+  end
+
   # --- account and references ---------------------------------------------
 
   def test_account_normalization
@@ -226,6 +347,19 @@ class TestParser < Minitest::Test
 
     assert_equal "CH4431999123000889012", bill.account
     assert_problem bill.errors, :account
+  end
+
+  # "ſ".upcase == "S" and "ı".upcase == "I": the account must not be
+  # silently turned into a valid IBAN.
+  def test_non_ascii_letters_in_the_iban_are_errors
+    %w[CH910076201162385295ſ CH930076201162385295ı].each do |account|
+      bill = SwissQr.parse(build_payload(4 => account, 28 => "NON", 29 => ""), strict: false)
+
+      refute_predicate bill, :valid?, account
+      assert_problem bill.errors, :account
+      refute_equal account.upcase, bill.account
+    end
+    refute SwissQr::Iban.valid?("CH910076201162385295ſ")
   end
 
   def test_account_problems
@@ -315,10 +449,21 @@ class TestParser < Minitest::Test
     assert_predicate bill, :notification?
     assert_empty bill.warnings
 
-    bill = SwissQr.parse(build_payload(19 => "0.00"))
+    bill = SwissQr.parse(build_payload(19 => "0.00", 30 => "BETG DUVRAR PER IL PAJAMENT"))
 
-    assert_predicate bill, :notification?
-    assert_problem bill.warnings, :amount
+    assert_predicate bill, :valid?
+  end
+
+  # IG 4.2.2: the amount is 0.01 to 999999999.99; 0.00 only with a
+  # notification text (IG 4.4).
+  def test_zero_amount_without_notification_text_is_an_error
+    ["Invoice 123", ""].each do |message|
+      bill = SwissQr.parse(build_payload(19 => "0.00", 30 => message), strict: false)
+
+      refute_predicate bill, :valid?, message.inspect
+      assert_problem bill.errors, :amount
+      assert_raises(SwissQr::InvalidPayload) { SwissQr.parse(build_payload(19 => "0.00", 30 => message)) }
+    end
   end
 
   # --- addresses ----------------------------------------------------------
@@ -367,8 +512,9 @@ class TestParser < Minitest::Test
 
   def test_address_field_rules
     {
-      { 11 => "ch" } => %i[warnings creditor.country],
-      { 9 => "CH-8000" } => %i[warnings creditor.postal_code],
+      { 11 => "ch" } => %i[errors creditor.country],
+      { 11 => "QQ" } => %i[errors creditor.country],
+      { 9 => "CH-8000" } => %i[errors creditor.postal_code],
       { 6 => "x" * 71 } => %i[errors creditor.name],
       { 7 => "x" * 71 } => %i[errors creditor.street],
       { 9 => "1" * 17 } => %i[errors creditor.postal_code],
@@ -382,6 +528,33 @@ class TestParser < Minitest::Test
       bill = SwissQr.parse(build_payload(overrides), strict: false)
 
       assert_problem bill.public_send(kind), field, "#{overrides} should give #{kind} on #{field}"
+    end
+  end
+
+  def test_country_must_be_an_iso_code
+    %w[DE LI FR XK].each { |country| assert SwissQr.valid?(build_payload(27 => country)), country }
+    %w[QQ ZZ UK EU ch].each { |country| refute SwissQr.valid?(build_payload(27 => country)), country }
+  end
+
+  # "The postal code must be provided without a country" (IG 4.2.2).
+  def test_postal_code_country_prefixes
+    {
+      %w[CH-8000 CH] => :error, %w[D-78462 DE] => :error, ["FL 9490", "LI"] => :error, %w[A-6900 AT] => :error,
+      %w[CH8000 CH] => nil, %w[LV-1050 LV] => nil, %w[LT-01100 LT] => nil, ["VLT 1117", "MT"] => nil,
+      ["SW1A 1AA", "GB"] => nil, ["K1A 0B1", "CA"] => nil, ["1012 AB", "NL"] => nil, %w[XYZ-123 DE] => :warning
+    }.each do |(postal_code, country), kind|
+      bill = SwissQr.parse(build_payload(25 => postal_code, 27 => country), strict: false)
+      label = "#{postal_code} (#{country})"
+
+      case kind
+      when :error then assert_problem bill.errors, :"debtor.postal_code", label
+      when :warning
+        assert_predicate bill, :valid?, label
+        assert_problem bill.warnings, :"debtor.postal_code", label
+      else
+        assert_predicate bill, :valid?, label
+        assert_empty bill.warnings, label
+      end
     end
   end
 

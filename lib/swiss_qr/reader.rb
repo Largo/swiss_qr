@@ -25,25 +25,39 @@ module SwissQr
     # The default reader: the +qr_reader+ gem, required on first use (not
     # when swiss_qr is loaded). Raises ReaderUnavailable when it cannot be
     # loaded; the next call tries again.
+    #
+    # +options+ are passed on to qr_reader (<tt>try_harder:</tt>,
+    # <tt>inverted:</tt>):
+    #
+    #   SwissQr.reader = SwissQr::Reader::QrReaderAdapter.new(try_harder: false)
     class QrReaderAdapter
       # qr_reader 0.0.2 raises this for a PDF with neither raster images nor
       # vector-drawn QR codes (e.g. a text-only invoice page) instead of
       # returning no codes.
       NO_IMAGES = "PDF contains no raster images"
 
+      attr_reader :options
+
+      def initialize(**options)
+        @options = options.freeze
+      end
+
       def decode_all(input)
         reader = qr_reader
-        nothing_on_pdf { reader.decode_all(input) }
+        nothing_on_pdf { reader.decode_all(input, **options) }
       end
 
       # Yields the text of each code as soon as it is decoded, so that
       # SwissQr.read can stop at the first QR-bill of a long PDF.
       def each_text(input, &)
         reader = qr_reader
-        nothing_on_pdf { reader.scan(input) { |result| yield result.text } }
+        nothing_on_pdf { reader.scan(input, **options) { |result| yield result.text } }
       end
 
-      def inspect = "#<#{self.class.name} (qr_reader gem, loaded on first use)>"
+      def inspect
+        shown = options.empty? ? "" : " #{options.inspect}"
+        "#<#{self.class.name}#{shown} (qr_reader gem, loaded on first use)>"
+      end
 
       private
 
@@ -102,9 +116,12 @@ module SwissQr
       Adapter.new(reader)
     end
 
-    # Normalises what a reader returned into an Array of Strings.
+    # Normalises what a reader returned into an Array of Strings. A single
+    # String or result object (with #text) counts as one code; it is not
+    # splatted with Array() (a Struct result would turn into its fields).
     def texts(result)
-      Array(result.respond_to?(:to_str) ? result.to_str : result).filter_map { |item| text(item) }
+      items = result.respond_to?(:to_str) || result.respond_to?(:text) ? [result] : Array(result)
+      items.filter_map { |item| text(item) }
     end
 
     def text(item)

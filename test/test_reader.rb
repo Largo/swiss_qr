@@ -180,6 +180,31 @@ class TestReader < Minitest::Test
     assert_equal text, SwissQr.read(:input, reader: reader.method(:scan_page)).raw
   end
 
+  StructResult = Struct.new(:text, :score)
+
+  # A single result object is one code, even when it splats (Struct#to_a).
+  def test_single_result_object_from_a_callable
+    text = payload("valid", "six_ig_ex1_qrr")
+    [StructResult.new(text, 1), Result.new(text)].each do |result|
+      assert_equal text, SwissQr.read(:input, reader: ->(_) { result }).raw, result.class.name
+      assert_equal [text], SwissQr.read_all(:input, reader: ->(_) { result }).map(&:raw), result.class.name
+    end
+    assert_equal [text], SwissQr.read_all(:input, reader: ->(_) { [StructResult.new(text, 1)] }).map(&:raw)
+  end
+
+  def test_default_adapter_passes_options_to_qr_reader
+    reader = SwissQr::Reader::QrReaderAdapter.new(try_harder: false, inverted: false)
+    assert_equal({ try_harder: false, inverted: false }, reader.options)
+    assert_includes reader.inspect, "try_harder"
+
+    SwissQr.reader = reader
+    assert_equal QrReaderHelper.qr_reader.decode_all(image("bill_and_url.png"), try_harder: false, inverted: false),
+                 reader.decode_all(image("bill_and_url.png"))
+    assert_equal 2, SwissQr.read_all(image("invoice_two_pages.pdf")).size
+    assert_nil SwissQr.read(TestReader.text_only_pdf), "keeps the no-images tolerance"
+    assert_raises(ArgumentError) { SwissQr.read(image("bill_and_url.png"), reader: SwissQr::Reader::QrReaderAdapter.new(bogus: 1)) }
+  end
+
   def test_non_utf8_strings_from_a_reader
     text = payload("valid", "unicode_charset")
     assert_equal text, SwissQr.read(:input, reader: ->(_) { text.b }).raw

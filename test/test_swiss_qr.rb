@@ -29,4 +29,12 @@ class TestSwissQr < Minitest::Test
     assert_equal ["bigdecimal"], spec.runtime_dependencies.map(&:name)
     assert_includes spec.executables, "swiss_qr"
   end
+
+  # The signatures use Date (stdlib), which consumers' rbs collection only
+  # loads when sig/manifest.yaml declares it.
+  def test_rbs_manifest_declares_stdlib_dependencies
+    root = File.expand_path("..", __dir__)
+    manifest = File.read(File.join(root, "sig/manifest.yaml"))
+    assert_match(/^\s*- name: date$/, manifest) if File.read(File.join(root, "sig/swiss_qr.rbs")).match?(/\bDate\b/)
+  end
 end

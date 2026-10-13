@@ -19,6 +19,7 @@ module SwissQr
     MIN_LINES = 31
     MAX_LINES = 34
     MAX_PAYLOAD_LENGTH = 997
+    MAX_INPUT_BYTES = 4096
     MAX_MESSAGE_LENGTH = 140 # unstructured message + billing information together
     MAX_ALTERNATIVE_PROCEDURE_LENGTH = 100
 
@@ -37,6 +38,10 @@ module SwissQr
       "BETG DUVRAR PER IL PAJAMENT"
     ].freeze
 
+    # Elements with a fixed format, where blanks are never part of the value.
+    FIXED_FORMAT_FIELDS = %i[header version coding_type account amount currency reference_type reference
+                             trailer].freeze
+
     STRUCTURED_FIELDS = %i[type name street building_number postal_code town country].freeze
     COMBINED_FIELDS = %i[type name address_line1 address_line2 postal_code town country].freeze
 
@@ -50,6 +55,16 @@ module SwissQr
     def warning(field, message)
       @warnings << Problem.new(field: field, message: message)
       nil
+    end
+
+    # A QR code holds at most 2953 bytes, so a longer text cannot have come
+    # from one; it is rejected before any line is looked at.
+    def check_input_size!(text)
+      return if text.bytesize <= MAX_INPUT_BYTES
+
+      message = "payload is #{text.bytesize} bytes; a QR code holds at most 2953 and a QR-bill at most " \
+                "#{MAX_PAYLOAD_LENGTH} characters"
+      raise InvalidPayload, @errors + [Problem.new(field: :payload, message: message)]
     end
 
     def check_length(field, value, max, label)
@@ -76,6 +91,28 @@ module SwissQr
       status_a ? warning(field, "#{kind}: #{listed}") : error(field, "#{kind}: #{listed}")
     end
 
+    # "It is not permitted to fill in the elements with blanks" (IG 4.1.3).
+    # Blanks around a fixed-format element (header, IBAN, amount, codes,
+    # reference, country), and a line of blanks instead of an empty line, are
+    # errors. Around free text (names, street, town, message) they are only
+    # warnings, because SIX's own Style Guide samples have a trailing blank
+    # after a street name. Status A lines only ever get warnings.
+    def check_padding(field, line, value, status_a:)
+      if status_a
+        warning(field, "leading or trailing blanks removed")
+      elsif value.empty?
+        error(field, "blanks instead of an empty line are not permitted (IG 4.1.3)")
+      elsif fixed_format?(field)
+        error(field, "leading or trailing blanks are not permitted (IG 4.1.3; got #{line.inspect})")
+      else
+        warning(field, "leading or trailing blanks removed (IG 4.1.3 does not permit padding)")
+      end
+    end
+
+    def fixed_format?(field)
+      FIXED_FORMAT_FIELDS.include?(field) || field.end_with?(".type", ".country")
+    end
+
     def check_header(version, coding_type)
       if version != VERSION
         detail = if version.to_s.match?(/\A02\d\d\z/)
@@ -92,6 +129,8 @@ module SwissQr
       return error(:account, "IBAN is mandatory") if raw.nil?
 
       error(:account, "IBAN must be given without spaces") if raw.match?(/[[:space:]]/)
+      return error(:account, "IBAN may only contain letters and digits") if raw.match?(/[^A-Za-z0-9[:space:]]/)
+
       warning(:account, "IBAN should be in upper case") if raw.match?(/[a-z]/)
       if !account.match?(/\A[A-Z0-9]+\z/)
         error(:account, "IBAN may only contain letters and digits")
@@ -127,6 +166,7 @@ module SwissQr
         check_combined_lines(field, line1, line2, postal_code, town)
       else
         check_structured_lines(field, line1, line2, postal_code, town)
+        check_postal_code_prefix(field[:postal_code], postal_code, country) if postal_code
       end
       check_country(field[:country], country)
       Address.from_lines(values)
@@ -146,14 +186,30 @@ module SwissQr
     def check_structured_lines(field, street, building_number, postal_code, town)
       check_length(field[:street], street, 70, "street")
       check_length(field[:building_number], building_number, 16, "building number")
-      if postal_code.nil?
-        error(field[:postal_code], "postal code is mandatory for a structured address")
-      elsif postal_code.match?(/\A[A-Z]{2}[- ]/)
-        warning(field[:postal_code], "postal code should be given without a country prefix (#{postal_code.inspect})")
-      end
+      error(field[:postal_code], "postal code is mandatory for a structured address") if postal_code.nil?
       check_length(field[:postal_code], postal_code, 16, "postal code")
       error(field[:town], "town is mandatory for a structured address") if town.nil?
       check_length(field[:town], town, 35, "town")
+    end
+
+    # "The postal code must be provided without a country" (IG 4.2.2): a
+    # country code or international vehicle code followed by "-" or a blank
+    # ("CH-8000", "D-78462", "FL 9490") is an error, except where the
+    # prefix is part of the country's official format ("LV-1050"). Other
+    # letter prefixes followed by "-" are only suspicious.
+    def check_postal_code_prefix(field, postal_code, country)
+      match = postal_code.match(/\A([A-Za-z]{1,3})([- ])(?=\d)/)
+      return unless match
+
+      prefix = match[1].upcase
+      separator = match[2]
+      return if prefix == country&.upcase && Countries::PREFIXED_POSTAL_CODES.include?(prefix)
+
+      if Countries.iso?(prefix) || Countries::VEHICLE_CODES.key?(prefix)
+        error(field, "postal code must be given without a country prefix (got #{postal_code.inspect})")
+      elsif separator == "-"
+        warning(field, "postal code looks like it has a country prefix (#{postal_code.inspect})")
+      end
     end
 
     # IG 2.2 rules for address type "K".
@@ -168,10 +224,10 @@ module SwissQr
     def check_country(field, country)
       if country.nil?
         error(field, "country is mandatory")
-      elsif !country.match?(/\A[A-Za-z]{2}\z/)
+      elsif !Countries.iso?(country.upcase(:ascii))
         error(field, "country must be a two-letter ISO 3166-1 code (got #{country.inspect})")
       elsif country.match?(/[a-z]/)
-        warning(field, "country code should be upper case (got #{country.inspect})")
+        error(field, "country code must be upper case (got #{country.inspect})")
       end
     end
 
@@ -206,8 +262,8 @@ module SwissQr
       return unless amount&.zero?
       return if NOTIFICATION_TEXTS.include?(message)
 
-      warning(:amount, "amount 0.00 is only meant for notifications whose message is one of " \
-                       "#{NOTIFICATION_TEXTS.map(&:inspect).join(", ")}")
+      error(:amount, "amount must be at least 0.01; 0.00 is only permitted for a notification whose message is " \
+                     "one of #{NOTIFICATION_TEXTS.map(&:inspect).join(", ")} (IG 4.4)")
     end
 
     def check_currency(currency)

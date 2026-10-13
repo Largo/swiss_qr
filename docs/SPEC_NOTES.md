@@ -83,7 +83,7 @@ Compiled 2026-10-14 from the PDFs listed under [Sources](#sources), downloaded t
   must be present" [IG2.4 §4.1.4]. Positions are fixed, so an empty value is an empty line.
 - "**The carriage return after the final element is eliminated**" [IG2.2/2.3/2.4 §4.1.4].
   However, **SIX's own sample QR codes violate this.** Of the 12 distinct official payloads
-  decoded from the IG PDFs (see §7), 7 end with `EPD\n` or `EPD\r\n`. A tolerant parser must
+  decoded from the IG PDFs (see §7), 6 end with `EPD\n` or `EPD\r\n`. A tolerant parser must
   accept a trailing separator and trailing empty lines after `EPD`, the billing information
   or the alternative procedures. The Annex A tables also show empty `Billing information ¶`,
   `AV1 ¶` and `AV2` rows where those lines are unused [IG2.4 Annex A, Tables 17, 19–22].
@@ -108,8 +108,14 @@ Compiled 2026-10-14 from the PDFs listed under [Sources](#sources), downloaded t
 
 ### 1.4 Field length rule
 - Lengths are maxima. "It is not permitted to fill in the elements with blanks up to the
-  maximum length" [IG2.4 §4.1.3]. Trailing-space padding is a violation, so warn on it.
-  Whether to strip it is a parser choice.
+  maximum length" [IG2.4 §4.1.3]. Padding is a violation. The gem strips blanks and records:
+  - an **error** for blanks around fixed-format elements (QR type, version, coding type, IBAN,
+    amount, currency, address type, country, reference type, reference, trailer), and for a
+    line of blanks where an element must be empty or absent (e.g. the reserved ultimate
+    creditor, the reference with `NON`);
+  - a **warning** for blanks around free text (names, street, building number, postal code,
+    town, message), because SIX's own Style Guide samples have `Musterstrasse ` with a
+    trailing blank (fixtures `six_sg_*`), and for anything in status A lines.
 
 ---
 
@@ -161,9 +167,13 @@ Notes:
 - **Creditor country:** only the IBAN is restricted to CH/LI. The creditor's address country
   is not restricted (sample: creditor in Vaduz, `LI`; debtor in Konstanz, `DE`) [IG2.4 Annex A
   examples 5–6].
-- Validating Ctry against the full ISO 3166-1 list versus a `[A-Z]{2}` shape is a design
-  choice. Lowercase is not explicitly forbidden (**UNVERIFIED**); suggest uppercase only, or
-  a warning.
+- Ctry is validated against the ISO 3166-1 alpha-2 list (`SwissQr::Countries`, plus the
+  user-assigned `XK` for Kosovo, which SWIFT and the IBAN registry use). ISO alpha-2 codes
+  are upper case, so lowercase is an error.
+- PstCd "must be provided without a country": a prefix that is an ISO code or an
+  international vehicle code followed by `-` or a blank (`CH-8000`, `D-78462`, `FL 9490`) is an
+  error, except where the country's official format includes it (`LV-1050`, `LT-01100`,
+  `MD-2001`). Other letter prefixes followed by `-` only give a warning.
 - Fields are case-sensitive except references: "The banks draw no distinction between lower
   and upper case when processing" [IG2.4 §4.2.2 `Ref`]. So validate SCOR case-insensitively.
 
@@ -256,8 +266,8 @@ mean the payment is not processed.
     1 Jan 2026) `BETG DUVRAR PER IL PAJAMENT`. "The line amount must not be left blank" for
     notifications. SIX's sample notification QR encodes `0.00` with
     `DO NOT USE FOR PAYMENT` (§7 vector N1).
-    Suggestion: accept `0.00`; flag `bill.notification?`; warn when `0.00` comes without one
-    of the five texts.
+    The gem accepts `0.00` only with one of the five texts (`bill.notification?`); `0.00`
+    with any other message is an error, since it is below the 0.01 minimum.
   - Strict mode should reject `50`, `50.0`, `050.00`, `50,00`, `1'000.00` and `-1.00`.
     Lenient mode can still parse a BigDecimal and add an error.
 
