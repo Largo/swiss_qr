@@ -1,0 +1,31 @@
+SPC
+0200
+1
+CH6630808001234567890
+K
+Elektro Muster AG
+Bahnhofstrasse 17
+8001 Zürich
+
+
+CH
+
+
+
+
+
+
+
+777.70
+CHF
+K
+Pia-Maria Rutschmann-Schnyder
+Grosse Marktgasse 28
+9400 Rorschach
+
+
+CH
+QRR
+110419900000000000002026106
+Address type K (removed in IG 2.3)
+EPD

@@ -1,0 +1,34 @@
+SPC
+0200
+1
+CH9300762011623852957
+S
+Creditor Name Creditor Name Creditor Name Creditor Name Creditor Name 
+Long Street Long Street Long Street Long Street Long Street Long Stree
+BBBBBBBBBBBBBBBB
+9999999999999999
+Town Town Town Town Town Town Town 
+CH
+
+
+
+
+
+
+
+999999999.99
+CHF
+S
+Debtor Name Debtor Name Debtor Name Debtor Name Debtor Name Debtor Nam
+Debtor Street Debtor Street Debtor Street Debtor Street Debtor Street 
+7777777777777777
+8888888888888888
+Village Village Village Village Vil
+CH
+SCOR
+RF52ABCDEFGHIJKLMNOPQRS12
+Message Message Message Message Message Message Message Message Message Me
+EPD
+//XY/9999999999999999999999999999999999999999999999999999999999999
+AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;
+AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;

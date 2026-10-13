@@ -1,0 +1,66 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH6630808001234567890",
+  "qr_iban": true,
+  "creditor": {
+    "type": "structured",
+    "name": "Elektro Muster AG",
+    "street": "Bahnhofstrasse",
+    "building_number": "17",
+    "postal_code": "8001",
+    "town": "Zürich",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "3949.75",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Pia-Maria Rutschmann-Schnyder",
+    "street": "Grosse Marktgasse",
+    "building_number": "28",
+    "postal_code": "9400",
+    "town": "Rorschach",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "qrr",
+  "reference": "110419900000000000002026106",
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": "//S1/10/10201409/11/190512/20/1400.000-53/30/106017086/31/180508/32/7.7/40/2:10;0:30",
+  "swico": {
+    "invoice_number": "10201409",
+    "invoice_date": "2019-05-12",
+    "customer_reference": "1400.000-53",
+    "vat_number": "106017086",
+    "vat_dates": [
+      "2018-05-08"
+    ],
+    "vat_details": [
+      {
+        "rate": "7.7",
+        "amount": null
+      }
+    ],
+    "vat_import_taxes": null,
+    "payment_conditions": [
+      {
+        "discount": "2",
+        "days": 10
+      },
+      {
+        "discount": "0",
+        "days": 30
+      }
+    ]
+  },
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

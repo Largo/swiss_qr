@@ -1,0 +1,32 @@
+SPC
+0200
+1
+CH9300762011623852957
+S
+Verlag Beispiel GmbH
+Steinentorstrasse
+8
+4051
+Basel
+CH
+
+
+
+
+
+
+
+1025.00
+CHF
+S
+Pia-Maria Rutschmann-Schnyder
+Grosse Marktgasse
+28
+9400
+Rorschach
+CH
+SCOR
+RF22INV2026101401
+Hotel, 26.-27.02.2018
+EPD
+//S1/10/10104/11/180228/30/395856455/31/180226180227/32/3.7:400.19;7.7:553.39;0:14/40/0:30

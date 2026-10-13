@@ -1,0 +1,72 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH6630808001234567890",
+  "qr_iban": true,
+  "creditor": {
+    "type": "structured",
+    "name": "Elektro Muster AG",
+    "street": "Bahnhofstrasse",
+    "building_number": "17",
+    "postal_code": "8001",
+    "town": "Zürich",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "120.15",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Simon Muster",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "qrr",
+  "reference": "000000000000000000000047119",
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": "//S1/10/X.66711\\/8824/11/200712/20/MW-2020-04/30/107978798/32/2.5:117.22/40/3:5;1.5:20;1:40;0:60",
+  "swico": {
+    "invoice_number": "X.66711/8824",
+    "invoice_date": "2020-07-12",
+    "customer_reference": "MW-2020-04",
+    "vat_number": "107978798",
+    "vat_dates": null,
+    "vat_details": [
+      {
+        "rate": "2.5",
+        "amount": "117.22"
+      }
+    ],
+    "vat_import_taxes": null,
+    "payment_conditions": [
+      {
+        "discount": "3",
+        "days": 5
+      },
+      {
+        "discount": "1.5",
+        "days": 20
+      },
+      {
+        "discount": "1",
+        "days": 40
+      },
+      {
+        "discount": "0",
+        "days": 60
+      }
+    ]
+  },
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

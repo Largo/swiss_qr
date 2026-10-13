@@ -1,0 +1,41 @@
+{
+  "_source": "SIX IG QR-bill v2.4 Annex A example 4, QR code on p. 55 (the printed table/payment part show RF72..., which has wrong check digits; see invalid/six_ig_ex4_table_scor_typo)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH5800791123000889012",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Muster Krankenkasse",
+    "street": "Musterstrasse",
+    "building_number": "12",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "211.00",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Sarah Beispiel",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "scor",
+  "reference": "RF240191230100405JSH0438",
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

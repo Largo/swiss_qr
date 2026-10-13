@@ -1,0 +1,70 @@
+{
+  "_source": "SIX IG QR-bill v2.4 figure 1, QR code on p. 11",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH4431999123000889012",
+  "qr_iban": true,
+  "creditor": {
+    "type": "structured",
+    "name": "Robert Schneider AG",
+    "street": "Rue du Lac",
+    "building_number": "1268",
+    "postal_code": "2501",
+    "town": "Biel",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "1949.75",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Pia-Maria Rutschmann-Schnyder",
+    "street": "Grosse Marktgasse",
+    "building_number": "28",
+    "postal_code": "9400",
+    "town": "Rorschach",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "qrr",
+  "reference": "210000000003139471430009017",
+  "unstructured_message": "Auftrag vom 15.06.2020",
+  "trailer": "EPD",
+  "bill_information": "//S1/10/10201409/11/200701/20/140.000-53/30/102673831/31/200615/32/7.7/33/7.7:139.40/40/0:30",
+  "swico": {
+    "invoice_number": "10201409",
+    "invoice_date": "2020-07-01",
+    "customer_reference": "140.000-53",
+    "vat_number": "102673831",
+    "vat_dates": [
+      "2020-06-15"
+    ],
+    "vat_details": [
+      {
+        "rate": "7.7",
+        "amount": null
+      }
+    ],
+    "vat_import_taxes": [
+      {
+        "rate": "7.7",
+        "amount": "139.40"
+      }
+    ],
+    "payment_conditions": [
+      {
+        "discount": "0",
+        "days": 30
+      }
+    ]
+  },
+  "alternative_procedures": [
+    "Name AV1: UV;UltraPay005;12345",
+    "Name AV2: XY;XYService;54321"
+  ],
+  "errors": [],
+  "warnings": []
+}

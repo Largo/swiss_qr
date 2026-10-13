@@ -1,0 +1,21 @@
+{
+  "_source": "SIX IG QR-bill v2.4 Annex A example 2",
+  "invoice_number": "1234",
+  "invoice_date": "2020-10-21",
+  "customer_reference": null,
+  "vat_number": "102673386",
+  "vat_dates": null,
+  "vat_details": [
+    {
+      "rate": "7.7",
+      "amount": null
+    }
+  ],
+  "vat_import_taxes": null,
+  "payment_conditions": [
+    {
+      "discount": "0",
+      "days": 30
+    }
+  ]
+}

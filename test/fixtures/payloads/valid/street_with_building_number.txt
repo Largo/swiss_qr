@@ -1,0 +1,31 @@
+SPC
+0200
+1
+CH66083900350A1234567
+S
+Boulangerie Exemple Sàrl
+Rue du Marché 12
+
+1204
+Genève
+CH
+
+
+
+
+
+
+
+8.40
+CHF
+S
+Jean Exemple
+Chemin des Vignes 3a
+
+1260
+Nyon
+CH
+NON
+
+
+EPD

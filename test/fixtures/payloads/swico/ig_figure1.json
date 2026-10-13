@@ -1,0 +1,28 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "invoice_number": "10201409",
+  "invoice_date": "2020-07-01",
+  "customer_reference": "140.000-53",
+  "vat_number": "102673831",
+  "vat_dates": [
+    "2020-06-15"
+  ],
+  "vat_details": [
+    {
+      "rate": "7.7",
+      "amount": null
+    }
+  ],
+  "vat_import_taxes": [
+    {
+      "rate": "7.7",
+      "amount": "139.40"
+    }
+  ],
+  "payment_conditions": [
+    {
+      "discount": "0",
+      "days": 30
+    }
+  ]
+}

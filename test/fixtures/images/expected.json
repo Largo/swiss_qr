@@ -1,0 +1,41 @@
+{
+  "six_ig_ex1_qrr.png": [
+    "six_ig_ex1_qrr"
+  ],
+  "six_ig_ex2_qrr_swico_two_alt_procedures.png": [
+    "six_ig_ex2_qrr_swico_two_alt_procedures"
+  ],
+  "iban_scor_eur.png": [
+    "iban_scor_eur"
+  ],
+  "combined_address_k_legacy.png": [
+    "combined_address_k_legacy"
+  ],
+  "unicode_charset.png": [
+    "unicode_charset"
+  ],
+  "max_lengths.png": [
+    "max_lengths"
+  ],
+  "qriban_qrr_lf_swiss_cross.png": [
+    "qriban_qrr_lf"
+  ],
+  "bill_and_url.png": [
+    "iban_non_message_lf",
+    {
+      "not_a_bill": "https://example.com/pay?id=4711"
+    }
+  ],
+  "url_only.png": [
+    {
+      "not_a_bill": "https://example.com/pay?id=4711"
+    }
+  ],
+  "invoice_two_pages.pdf": [
+    "six_ig_ex2_qrr_swico_two_alt_procedures",
+    "iban_scor_eur",
+    {
+      "not_a_bill": "https://example.com/pay?id=4711"
+    }
+  ]
+}

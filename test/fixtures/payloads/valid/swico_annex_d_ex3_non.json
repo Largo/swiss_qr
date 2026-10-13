@@ -1,0 +1,65 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH66083900350A1234567",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Verlag Beispiel GmbH",
+    "street": "Steinentorstrasse",
+    "building_number": "8",
+    "postal_code": "4051",
+    "town": "Basel",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "68.65",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Sarah Beispiel",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "non",
+  "reference": null,
+  "unstructured_message": "Import",
+  "trailer": "EPD",
+  "bill_information": "//S1/10/4031202511/11/180107/20/61257233.4/30/105493567/32/8:49.82/33/2.5:14.85/40/0:30",
+  "swico": {
+    "invoice_number": "4031202511",
+    "invoice_date": "2018-01-07",
+    "customer_reference": "61257233.4",
+    "vat_number": "105493567",
+    "vat_dates": null,
+    "vat_details": [
+      {
+        "rate": "8",
+        "amount": "49.82"
+      }
+    ],
+    "vat_import_taxes": [
+      {
+        "rate": "2.5",
+        "amount": "14.85"
+      }
+    ],
+    "payment_conditions": [
+      {
+        "discount": "0",
+        "days": 30
+      }
+    ]
+  },
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

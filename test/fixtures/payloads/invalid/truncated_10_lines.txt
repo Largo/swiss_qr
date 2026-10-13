@@ -1,0 +1,10 @@
+SPC
+0200
+1
+CH6630808001234567890
+S
+Elektro Muster AG
+Bahnhofstrasse
+17
+8001
+Zürich

@@ -1,0 +1,41 @@
+{
+  "_source": "SIX IG QR-bill v2.4 Annex A example 5, QR code on p. 56",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH5800791123000889012",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Max Muster & Söhne",
+    "street": "Musterstrasse",
+    "building_number": "123",
+    "postal_code": "9490",
+    "town": "Vaduz",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "LI"
+  },
+  "ultimate_creditor": null,
+  "amount": "199.95",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Sarah Beispiel",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "scor",
+  "reference": "RF18539007547034",
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

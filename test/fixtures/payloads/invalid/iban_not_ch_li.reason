@@ -1,0 +1,1 @@
+account: only CH and LI IBANs are permitted (LV IBAN with valid check digits)

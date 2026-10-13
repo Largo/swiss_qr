@@ -1,0 +1,31 @@
+SPC
+0100
+1
+CH6630808001234567890
+S
+Elektro Muster AG
+Bahnhofstrasse
+17
+8001
+Zürich
+CH
+
+
+
+
+
+
+
+100.00
+CHF
+S
+Simon Muster
+Musterstrasse
+1
+8000
+Seldwyla
+CH
+QRR
+110419900000000000002026106
+
+EPD

@@ -1,0 +1,31 @@
+{
+  "_source": "SIX Style Guide QR-bill p. 23; introduction script pp. 11/17/20",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH5204835012345671000",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Better World Trust",
+    "street": "P.O. Box",
+    "building_number": null,
+    "postal_code": "3001",
+    "town": "Bern",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": null,
+  "currency": "CHF",
+  "debtor": null,
+  "reference_type": "non",
+  "reference": null,
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

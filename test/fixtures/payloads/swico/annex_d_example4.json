@@ -1,0 +1,33 @@
+{
+  "_source": "SIX IG QR-bill v2.4 Annex D, table 31, example4",
+  "invoice_number": "X.66711/8824",
+  "invoice_date": "2020-07-12",
+  "customer_reference": "MW-2020-04",
+  "vat_number": "107978798",
+  "vat_dates": null,
+  "vat_details": [
+    {
+      "rate": "2.5",
+      "amount": "117.22"
+    }
+  ],
+  "vat_import_taxes": null,
+  "payment_conditions": [
+    {
+      "discount": "3",
+      "days": 5
+    },
+    {
+      "discount": "1.5",
+      "days": 20
+    },
+    {
+      "discount": "1",
+      "days": 40
+    },
+    {
+      "discount": "0",
+      "days": 60
+    }
+  ]
+}

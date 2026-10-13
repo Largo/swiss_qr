@@ -1,0 +1,63 @@
+{
+  "_source": "SIX IG QR-bill v2.4 Annex A example 2, QR code on p. 52",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH4431999123000889012",
+  "qr_iban": true,
+  "creditor": {
+    "type": "structured",
+    "name": "Max Muster & Söhne",
+    "street": "Musterstrasse",
+    "building_number": "123",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "1949.75",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Simon Muster",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "qrr",
+  "reference": "210000000003139471430009017",
+  "unstructured_message": "Order from 15.10.2020",
+  "trailer": "EPD",
+  "bill_information": "//S1/10/1234/11/201021/30/102673386/32/7.7/40/0:30",
+  "swico": {
+    "invoice_number": "1234",
+    "invoice_date": "2020-10-21",
+    "customer_reference": null,
+    "vat_number": "102673386",
+    "vat_dates": null,
+    "vat_details": [
+      {
+        "rate": "7.7",
+        "amount": null
+      }
+    ],
+    "vat_import_taxes": null,
+    "payment_conditions": [
+      {
+        "discount": "0",
+        "days": 30
+      }
+    ]
+  },
+  "alternative_procedures": [
+    "Name AV1: UV;UltraPay005;12345",
+    "Name AV2: XY;XYService;54321"
+  ],
+  "errors": [],
+  "warnings": []
+}

@@ -1,0 +1,31 @@
+SPC
+0200
+1
+LI21088100002324013AA
+S
+Treuhand Muster Anstalt
+Städtle
+5
+9490
+Vaduz
+LI
+
+
+
+
+
+
+
+4500.00
+CHF
+S
+Sarah Beispiel
+Musterstrasse
+1
+8000
+Seldwyla
+CH
+SCOR
+RF90A1
+
+EPD

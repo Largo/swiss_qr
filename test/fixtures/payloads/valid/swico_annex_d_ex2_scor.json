@@ -1,0 +1,71 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH9300762011623852957",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Verlag Beispiel GmbH",
+    "street": "Steinentorstrasse",
+    "building_number": "8",
+    "postal_code": "4051",
+    "town": "Basel",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "1025.00",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Pia-Maria Rutschmann-Schnyder",
+    "street": "Grosse Marktgasse",
+    "building_number": "28",
+    "postal_code": "9400",
+    "town": "Rorschach",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "scor",
+  "reference": "RF22INV2026101401",
+  "unstructured_message": "Hotel, 26.-27.02.2018",
+  "trailer": "EPD",
+  "bill_information": "//S1/10/10104/11/180228/30/395856455/31/180226180227/32/3.7:400.19;7.7:553.39;0:14/40/0:30",
+  "swico": {
+    "invoice_number": "10104",
+    "invoice_date": "2018-02-28",
+    "customer_reference": null,
+    "vat_number": "395856455",
+    "vat_dates": [
+      "2018-02-26",
+      "2018-02-27"
+    ],
+    "vat_details": [
+      {
+        "rate": "3.7",
+        "amount": "400.19"
+      },
+      {
+        "rate": "7.7",
+        "amount": "553.39"
+      },
+      {
+        "rate": "0",
+        "amount": "14"
+      }
+    ],
+    "vat_import_taxes": null,
+    "payment_conditions": [
+      {
+        "discount": "0",
+        "days": 30
+      }
+    ]
+  },
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

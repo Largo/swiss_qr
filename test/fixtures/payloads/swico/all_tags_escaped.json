@@ -1,0 +1,37 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "invoice_number": "R\\2026/77",
+  "invoice_date": "2026-10-14",
+  "customer_reference": "Kd. 4711",
+  "vat_number": "123456789",
+  "vat_dates": [
+    "2026-01-01",
+    "2026-12-31"
+  ],
+  "vat_details": [
+    {
+      "rate": "8.1",
+      "amount": "100"
+    },
+    {
+      "rate": "2.6",
+      "amount": "50"
+    }
+  ],
+  "vat_import_taxes": [
+    {
+      "rate": "8.1",
+      "amount": "12.50"
+    }
+  ],
+  "payment_conditions": [
+    {
+      "discount": "2",
+      "days": 10
+    },
+    {
+      "discount": "0",
+      "days": 30
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+SPC
+0200
+1
+CH66083900350A1234567
+S
+Verlag Beispiel GmbH
+Steinentorstrasse
+8
+4051
+Basel
+CH
+
+
+
+
+
+
+
+68.65
+CHF
+S
+Sarah Beispiel
+Musterstrasse
+1
+8000
+Seldwyla
+CH
+NON
+
+Import
+EPD
+//S1/10/4031202511/11/180107/20/61257233.4/30/105493567/32/8:49.82/33/2.5:14.85/40/0:30

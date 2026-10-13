@@ -1,0 +1,31 @@
+SPC
+0200
+1
+CH6630808001234567890
+S
+Elektro Muster AG
+Bahnhofstrasse
+17
+8001
+Zürich
+CH
+
+
+
+
+
+
+
+1500.00
+EUR
+S
+Anna Schmid
+Hauptstrasse
+42
+79539
+Lörrach
+DE
+QRR
+000000000000000000000047119
+
+EPD

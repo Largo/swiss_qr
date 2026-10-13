@@ -1,0 +1,41 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH66083900350A1234567",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Boulangerie Exemple Sàrl",
+    "street": "Rue du Marché 12",
+    "building_number": null,
+    "postal_code": "1204",
+    "town": "Genève",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "8.40",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Jean Exemple",
+    "street": "Chemin des Vignes 3a",
+    "building_number": null,
+    "postal_code": "1260",
+    "town": "Nyon",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "non",
+  "reference": null,
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

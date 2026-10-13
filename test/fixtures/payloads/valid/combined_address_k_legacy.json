@@ -1,0 +1,48 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH6630808001234567890",
+  "qr_iban": true,
+  "creditor": {
+    "type": "combined",
+    "name": "Elektro Muster AG",
+    "street": null,
+    "building_number": null,
+    "postal_code": null,
+    "town": null,
+    "address_line1": "Bahnhofstrasse 17",
+    "address_line2": "8001 Zürich",
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "777.70",
+  "currency": "CHF",
+  "debtor": {
+    "type": "combined",
+    "name": "Pia-Maria Rutschmann-Schnyder",
+    "street": null,
+    "building_number": null,
+    "postal_code": null,
+    "town": null,
+    "address_line1": "Grosse Marktgasse 28",
+    "address_line2": "9400 Rorschach",
+    "country": "CH"
+  },
+  "reference_type": "qrr",
+  "reference": "110419900000000000002026106",
+  "unstructured_message": "Address type K (removed in IG 2.3)",
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": [
+    {
+      "field": "creditor.type"
+    },
+    {
+      "field": "debtor.type"
+    }
+  ]
+}

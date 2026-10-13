@@ -1,0 +1,34 @@
+SPC
+0200
+1
+CH9300762011623852957
+S
+Verlag Beispiel GmbH
+Steinentorstrasse
+8
+4051
+Basel
+CH
+
+
+
+
+
+
+
+48.00
+CHF
+S
+Simon Muster
+Musterstrasse
+1
+8000
+Seldwyla
+CH
+SCOR
+RF22INV2026101401
+Abo 2027
+EPD
+//S1/10/2026-0815/40/0:30
+eBill/B/41010560425610173
+XY;XYService;54321

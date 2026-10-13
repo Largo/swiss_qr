@@ -1,0 +1,41 @@
+{
+  "_source": "SIX IG QR-bill v2.4 (2026-02-24) Annex A example 1, QR code on p. 50; identical in style guide pp. 14/25",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH6431961000004421557",
+  "qr_iban": true,
+  "creditor": {
+    "type": "structured",
+    "name": "Max Muster & Söhne",
+    "street": "Musterstrasse",
+    "building_number": "123",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "50.00",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Simon Muster",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "qrr",
+  "reference": "000008207791225857421286694",
+  "unstructured_message": "Payment of travel",
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

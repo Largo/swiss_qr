@@ -1,0 +1,43 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH6630808001234567890",
+  "qr_iban": true,
+  "creditor": {
+    "type": "structured",
+    "name": "Elektro Muster AG",
+    "street": "Bahnhofstrasse",
+    "building_number": "17",
+    "postal_code": "8001",
+    "town": "Zürich",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "250.00",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Simon Muster",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "qrr",
+  "reference": "110419900000000000002026106",
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [
+    "eBill/B/simon.muster@example.com"
+  ],
+  "errors": [],
+  "warnings": []
+}

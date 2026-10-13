@@ -1,0 +1,32 @@
+{
+  "_source": "SIX IG QR-bill v2.4 Annex D, table 31, example2",
+  "invoice_number": "10104",
+  "invoice_date": "2018-02-28",
+  "customer_reference": null,
+  "vat_number": "395856455",
+  "vat_dates": [
+    "2018-02-26",
+    "2018-02-27"
+  ],
+  "vat_details": [
+    {
+      "rate": "3.7",
+      "amount": "400.19"
+    },
+    {
+      "rate": "7.7",
+      "amount": "553.39"
+    },
+    {
+      "rate": "0",
+      "amount": "14"
+    }
+  ],
+  "vat_import_taxes": null,
+  "payment_conditions": [
+    {
+      "discount": "0",
+      "days": 30
+    }
+  ]
+}

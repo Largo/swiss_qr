@@ -1,0 +1,41 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "LI20301230000ABCD1234",
+  "qr_iban": true,
+  "creditor": {
+    "type": "structured",
+    "name": "Treuhand Muster Anstalt",
+    "street": "Städtle",
+    "building_number": "5",
+    "postal_code": "9490",
+    "town": "Vaduz",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "LI"
+  },
+  "ultimate_creditor": null,
+  "amount": "99.90",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Simon Muster",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "qrr",
+  "reference": "300000000000001234567890126",
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

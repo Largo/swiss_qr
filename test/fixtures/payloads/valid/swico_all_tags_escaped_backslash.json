@@ -1,0 +1,76 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH9300762011623852957",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Verlag Beispiel GmbH",
+    "street": "Steinentorstrasse",
+    "building_number": "8",
+    "postal_code": "4051",
+    "town": "Basel",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "171.90",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Pia-Maria Rutschmann-Schnyder",
+    "street": "Grosse Marktgasse",
+    "building_number": "28",
+    "postal_code": "9400",
+    "town": "Rorschach",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "scor",
+  "reference": "RF22INV2026101401",
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": "//S1/10/R\\\\2026\\/77/11/261014/20/Kd. 4711/30/123456789/31/260101261231/32/8.1:100;2.6:50/33/8.1:12.50/40/2:10;0:30",
+  "swico": {
+    "invoice_number": "R\\2026/77",
+    "invoice_date": "2026-10-14",
+    "customer_reference": "Kd. 4711",
+    "vat_number": "123456789",
+    "vat_dates": [
+      "2026-01-01",
+      "2026-12-31"
+    ],
+    "vat_details": [
+      {
+        "rate": "8.1",
+        "amount": "100"
+      },
+      {
+        "rate": "2.6",
+        "amount": "50"
+      }
+    ],
+    "vat_import_taxes": [
+      {
+        "rate": "8.1",
+        "amount": "12.50"
+      }
+    ],
+    "payment_conditions": [
+      {
+        "discount": "2",
+        "days": 10
+      },
+      {
+        "discount": "0",
+        "days": 30
+      }
+    ]
+  },
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

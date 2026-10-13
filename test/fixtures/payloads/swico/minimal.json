@@ -1,0 +1,16 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "invoice_number": "2026-0815",
+  "invoice_date": null,
+  "customer_reference": null,
+  "vat_number": null,
+  "vat_dates": null,
+  "vat_details": null,
+  "vat_import_taxes": null,
+  "payment_conditions": [
+    {
+      "discount": "0",
+      "days": 30
+    }
+  ]
+}

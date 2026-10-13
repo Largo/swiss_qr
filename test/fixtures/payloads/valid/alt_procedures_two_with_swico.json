@@ -1,0 +1,58 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH9300762011623852957",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Verlag Beispiel GmbH",
+    "street": "Steinentorstrasse",
+    "building_number": "8",
+    "postal_code": "4051",
+    "town": "Basel",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "48.00",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Simon Muster",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "scor",
+  "reference": "RF22INV2026101401",
+  "unstructured_message": "Abo 2027",
+  "trailer": "EPD",
+  "bill_information": "//S1/10/2026-0815/40/0:30",
+  "swico": {
+    "invoice_number": "2026-0815",
+    "invoice_date": null,
+    "customer_reference": null,
+    "vat_number": null,
+    "vat_dates": null,
+    "vat_details": null,
+    "vat_import_taxes": null,
+    "payment_conditions": [
+      {
+        "discount": "0",
+        "days": 30
+      }
+    ]
+  },
+  "alternative_procedures": [
+    "eBill/B/41010560425610173",
+    "XY;XYService;54321"
+  ],
+  "errors": [],
+  "warnings": []
+}

@@ -1,0 +1,42 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "_note": "valid under IG 2.3 (in force); IG 2.4 (from 2026-11-14) restricts QR-IBAN/QRR to CHF",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH6630808001234567890",
+  "qr_iban": true,
+  "creditor": {
+    "type": "structured",
+    "name": "Elektro Muster AG",
+    "street": "Bahnhofstrasse",
+    "building_number": "17",
+    "postal_code": "8001",
+    "town": "Zürich",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "1500.00",
+  "currency": "EUR",
+  "debtor": {
+    "type": "structured",
+    "name": "Anna Schmid",
+    "street": "Hauptstrasse",
+    "building_number": "42",
+    "postal_code": "79539",
+    "town": "Lörrach",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "DE"
+  },
+  "reference_type": "qrr",
+  "reference": "000000000000000000000047119",
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

@@ -1,0 +1,1 @@
+reference: QR reference must not consist only of zeros (IG 2.3+; its check digit 0 is formally correct)

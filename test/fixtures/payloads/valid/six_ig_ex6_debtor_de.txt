@@ -1,0 +1,31 @@
+SPC
+0200
+1
+CH5800791123000889012
+S
+Max Muster & Söhne
+Musterstrasse
+123
+8000
+Seldwyla
+CH
+
+
+
+
+
+
+
+199.95
+CHF
+S
+Sarah Beispiel
+Musterstrasse
+1
+78462
+Konstanz
+DE
+SCOR
+RF18539007547034
+
+EPD

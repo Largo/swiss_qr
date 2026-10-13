@@ -1,0 +1,41 @@
+{
+  "_source": "SIX IG QR-bill v2.4 ch. 4.4 'DO NOT USE FOR PAYMENT' (amount 0.00 is required there), QR code on p. 42",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH4431999123000889012",
+  "qr_iban": true,
+  "creditor": {
+    "type": "structured",
+    "name": "Max Muster & Söhne",
+    "street": "Musterstrasse",
+    "building_number": "123",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "0.00",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Simon Muster",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "qrr",
+  "reference": "210000000003139471430009017",
+  "unstructured_message": "DO NOT USE FOR PAYMENT",
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [],
+  "errors": [],
+  "warnings": []
+}

@@ -1,0 +1,13 @@
+{
+  "_source": "SIX Style Guide QR-bill sample QR codes",
+  "invoice_number": "10201409",
+  "invoice_date": "2017-03-09",
+  "customer_reference": "14000000",
+  "vat_number": "106017086",
+  "vat_dates": [
+    "2021-01-22"
+  ],
+  "vat_details": null,
+  "vat_import_taxes": null,
+  "payment_conditions": null
+}

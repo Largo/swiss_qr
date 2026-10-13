@@ -1,0 +1,34 @@
+SPC
+0200
+1
+CH4431999123000889012
+S
+Max Muster & Söhne
+Musterstrasse
+123
+8000
+Seldwyla
+CH
+
+
+
+
+
+
+
+2500.25
+CHF
+S
+Simon Muster
+Musterstrasse 
+1
+8000
+Seldwyla
+CH
+QRR
+210000000003139471430009017
+
+EPD
+
+Name AV1: UV;UltraPay005;12345
+Name AV2: XY;XYService;54321

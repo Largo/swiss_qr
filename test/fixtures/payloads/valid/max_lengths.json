@@ -1,0 +1,44 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH9300762011623852957",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Creditor Name Creditor Name Creditor Name Creditor Name Creditor Name",
+    "street": "Long Street Long Street Long Street Long Street Long Street Long Stree",
+    "building_number": "BBBBBBBBBBBBBBBB",
+    "postal_code": "9999999999999999",
+    "town": "Town Town Town Town Town Town Town",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "999999999.99",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Debtor Name Debtor Name Debtor Name Debtor Name Debtor Name Debtor Nam",
+    "street": "Debtor Street Debtor Street Debtor Street Debtor Street Debtor Street",
+    "building_number": "7777777777777777",
+    "postal_code": "8888888888888888",
+    "town": "Village Village Village Village Vil",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "scor",
+  "reference": "RF52ABCDEFGHIJKLMNOPQRS12",
+  "unstructured_message": "Message Message Message Message Message Message Message Message Message Me",
+  "trailer": "EPD",
+  "bill_information": "//XY/9999999999999999999999999999999999999999999999999999999999999",
+  "swico": null,
+  "alternative_procedures": [
+    "AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;",
+    "AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;AP2;"
+  ],
+  "errors": [],
+  "warnings": []
+}

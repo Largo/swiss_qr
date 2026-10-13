@@ -1,0 +1,34 @@
+QRType
+Version
+Coding Type
+Compte (IBAN CRE)
+Type d'adresse (CRE)
+Nom (CRE)
+Rue ou ligne d'adresse 1 (CRE)
+Numéro de maison ou ligne d'adresse 2 (CRE)
+Code postale (CRE)
+Lieu (CRE)
+Pays (CRE)
+Type d'adresse (CREF)
+Nom (CREF)
+Rue ou ligne d'adresse 1 (CREF)
+Numéro de maison ou ligne d'adresse 2 (CREF)
+Code postale (CREF)
+Lieu (CREF)
+Pays (CREF)
+Montant
+Monnaie
+Type d'adresse (DEBF)
+Nom (DEBF)
+Rue ou ligne d'adresse 1 (DEBF)
+Numéro de maison ou ligne d'adresse 2 (DEBF)
+Code postale (DEBF)
+Lieu (DEBF)
+Pays (DEBF)
+Type de référence
+Référence
+Communication non structurée
+Trailer
+Informations de facture
+PA1 – Paramètres
+PA2 – Paramètres

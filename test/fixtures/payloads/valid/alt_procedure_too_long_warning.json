@@ -1,0 +1,48 @@
+{
+  "_source": "hand-built (generate.rb)",
+  "_note": "status A line: IG 4.2.1 says errors there must not cause rejection, so a warning, not an error",
+  "version": "0200",
+  "coding_type": "1",
+  "account": "CH9300762011623852957",
+  "qr_iban": false,
+  "creditor": {
+    "type": "structured",
+    "name": "Verlag Beispiel GmbH",
+    "street": "Steinentorstrasse",
+    "building_number": "8",
+    "postal_code": "4051",
+    "town": "Basel",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "ultimate_creditor": null,
+  "amount": "100.00",
+  "currency": "CHF",
+  "debtor": {
+    "type": "structured",
+    "name": "Simon Muster",
+    "street": "Musterstrasse",
+    "building_number": "1",
+    "postal_code": "8000",
+    "town": "Seldwyla",
+    "address_line1": null,
+    "address_line2": null,
+    "country": "CH"
+  },
+  "reference_type": "non",
+  "reference": null,
+  "unstructured_message": null,
+  "trailer": "EPD",
+  "bill_information": null,
+  "swico": null,
+  "alternative_procedures": [
+    "AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;A"
+  ],
+  "errors": [],
+  "warnings": [
+    {
+      "field": "alternative_procedures"
+    }
+  ]
+}

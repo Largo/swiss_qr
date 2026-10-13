@@ -1,0 +1,31 @@
+SPC
+0200
+1
+CH5204835012345671000
+S
+Max Muster & Söhne
+Musterstrasse
+123
+8000
+Seldwyla
+CH
+
+
+
+
+
+
+
+50.00
+CHF
+S
+Sarah Beispiel
+Musterstrasse
+1
+8000
+Seldwyla
+CH
+NON
+
+payment of the trip
+EPD
