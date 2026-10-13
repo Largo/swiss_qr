@@ -12,6 +12,6 @@ gem "minitest", "~> 5.16"
 
 gem "rubocop", "~> 1.21"
 
-gem "qr_reader", "~> 0.0.2", groups: [:development, :test]
-gem "rqrcode", "~> 3.2", groups: [:development, :test]
-gem "chunky_png", "~> 1.4", groups: [:development, :test]
+gem "chunky_png", "~> 1.4", groups: %i[development test]
+gem "qr_reader", "~> 0.0.2", groups: %i[development test]
+gem "rqrcode", "~> 3.2", groups: %i[development test]

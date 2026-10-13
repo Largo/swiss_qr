@@ -1,4 +1,161 @@
 module SwissQr
   VERSION: String
-  # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+  def self.parse: (String payload, ?strict: bool) -> Bill
+  def self.valid?: (untyped payload) -> bool
+  def self.qr_bill?: (untyped text) -> bool
+
+  class Error < StandardError
+  end
+
+  class InvalidPayload < Error
+    attr_reader errors: Array[Problem]
+    attr_reader bill: Bill?
+
+    def initialize: (Array[Problem] errors, ?bill: Bill?) -> void
+  end
+
+  class ReaderUnavailable < Error
+  end
+
+  class Problem < Data
+    attr_reader field: Symbol
+    attr_reader message: String
+
+    def initialize: (field: Symbol | String, message: String) -> void
+    def about?: (Symbol | String name) -> bool
+    def as_json: (*untyped) -> Hash[String, String]
+  end
+
+  type address_type = :structured | :combined
+  type reference_type = :qrr | :scor | :non
+
+  class Address < Data
+    attr_reader type: address_type?
+    attr_reader name: String?
+    attr_reader street: String?
+    attr_reader building_number: String?
+    attr_reader postal_code: String?
+    attr_reader town: String?
+    attr_reader address_line1: String?
+    attr_reader address_line2: String?
+    attr_reader country: String?
+
+    def self.type_for: (String? code) -> address_type?
+    def self.from_lines: (Array[String?] lines) -> Address
+    def structured?: () -> bool
+    def combined?: () -> bool
+    def lines: () -> Array[String]
+    def as_json: (*untyped) -> Hash[String, String?]
+  end
+
+  class BillInformation < Data
+    class VatRate < Data
+      attr_reader rate: BigDecimal
+      attr_reader amount: BigDecimal?
+
+      def as_json: (*untyped) -> Hash[String, String?]
+    end
+
+    class PaymentCondition < Data
+      attr_reader discount: BigDecimal
+      attr_reader days: Integer
+
+      def as_json: (*untyped) -> Hash[String, untyped]
+    end
+
+    attr_reader raw: String
+    attr_reader invoice_number: String?
+    attr_reader invoice_date: Date?
+    attr_reader customer_reference: String?
+    attr_reader vat_number: String?
+    attr_reader vat_dates: Array[Date]?
+    attr_reader vat_details: Array[VatRate]?
+    attr_reader vat_import_taxes: Array[VatRate]?
+    attr_reader payment_conditions: Array[PaymentCondition]?
+    attr_reader unknown_tags: Hash[String, String]
+    attr_reader warnings: Array[Problem]
+
+    def self.prefix: () -> String
+    def self.s1?: (untyped text) -> bool
+    def self.parse: (String text) -> BillInformation
+    def self.decimal_string: (BigDecimal? value) -> String?
+    def as_json: (*untyped) -> Hash[String, untyped]
+  end
+
+  class Bill < Data
+    attr_reader version: String?
+    attr_reader coding_type: String?
+    attr_reader account: String?
+    attr_reader qr_iban: bool
+    attr_reader creditor: Address?
+    attr_reader ultimate_creditor: Address?
+    attr_reader amount: BigDecimal?
+    attr_reader currency: String?
+    attr_reader debtor: Address?
+    attr_reader reference_type: reference_type?
+    attr_reader reference: String?
+    attr_reader unstructured_message: String?
+    attr_reader trailer: String?
+    attr_reader bill_information: String?
+    attr_reader swico: BillInformation?
+    attr_reader alternative_procedures: Array[String]
+    attr_reader errors: Array[Problem]
+    attr_reader warnings: Array[Problem]
+    attr_reader raw: String
+
+    def self.amount_string: (BigDecimal value) -> String
+    def qr_iban?: () -> bool
+    def valid?: () -> bool
+    def notification?: () -> bool
+    def open_amount?: () -> bool
+    def formatted_account: () -> String?
+    def formatted_reference: () -> String?
+    def formatted_amount: () -> String?
+    def as_json: (*untyped) -> Hash[String, untyped]
+    def to_json: (*untyped) -> String
+  end
+
+  module Checksum
+    MOD10_TABLE: Array[Integer]
+
+    def self.mod10_recursive: (String digits) -> Integer
+    def self.mod97: (String value) -> Integer
+  end
+
+  module Iban
+    PATTERN: Regexp
+    QR_BILL_PATTERN: Regexp
+    QR_IID_RANGE: Range[Integer]
+    COUNTRIES: Array[String]
+
+    def self.normalize: (String? iban) -> String
+    def self.valid?: (String? iban) -> bool
+    def self.qr_bill_account?: (String? iban) -> bool
+    def self.qr_iban?: (String? iban) -> bool
+    def self.qr_iid?: (String? iban) -> bool
+    def self.iid: (String? iban) -> String?
+    def self.format: (String? iban) -> String
+  end
+
+  module Reference
+    QRR_PATTERN: Regexp
+    SCOR_PATTERN: Regexp
+
+    def self.normalize: (String? reference) -> String
+    def self.valid_qrr?: (String? reference) -> bool
+    def self.valid_scor?: (String? reference) -> bool
+    def self.qrr: (String digits) -> String
+    def self.scor: (String payload) -> String
+    def self.format_qrr: (String reference) -> String
+    def self.format_scor: (String reference) -> String
+    def self.format: (String? reference, ?reference_type? type) -> String?
+  end
+
+  class Parser
+    def self.parse: (String payload, ?strict: bool) -> Bill
+    def self.qr_bill?: (untyped text) -> bool
+    def initialize: (String payload) -> void
+    def parse: (?strict: bool) -> Bill
+  end
 end

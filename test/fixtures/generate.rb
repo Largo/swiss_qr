@@ -851,7 +851,7 @@ module FixtureGen
       page_ids = []
       pages_id_placeholder = "PAGES_ID"
       pages.each do |page|
-        ops = +"BT /F1 14 Tf #{20 * mm} #{270 * mm} Td (#{page[:title]}) Tj ET\n"
+        ops = "BT /F1 14 Tf #{20 * mm} #{270 * mm} Td (#{page[:title]}) Tj ET\n"
         page[:codes].each do |code|
           mods = qr_modules(code[:text])
           n = mods.size
@@ -882,7 +882,7 @@ module FixtureGen
         data = Zlib::Deflate.deflate(ops, Zlib::BEST_COMPRESSION)
         content = add.call("<< /Length #{data.bytesize} /Filter /FlateDecode >>\nstream\n".b + data + "\nendstream".b)
         page_ids << add.call("<< /Type /Page /Parent #{pages_id_placeholder} 0 R /MediaBox [0 0 595.28 841.89] " \
-                         "/Resources << /Font << /F1 #{font} 0 R >> >> /Contents #{content} 0 R >>")
+                             "/Resources << /Font << /F1 #{font} 0 R >> >> /Contents #{content} 0 R >>")
       end
       pages_id = add.call("<< /Type /Pages /Kids [#{page_ids.map do |i|
         "#{i} 0 R"

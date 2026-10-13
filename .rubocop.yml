@@ -1,8 +1,44 @@
 AllCops:
   TargetRubyVersion: 3.2
+  NewCops: enable
+  SuggestExtensions: false
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
+
+Layout/LineLength:
+  Max: 130
+
+# Tests are long, flat lists of assertions; method-size metrics only add noise there.
+Metrics:
+  Exclude:
+    - "test/test_*.rb"
+
+# The validator is a straight transcription of the QR-bill rule tables.
+Metrics/MethodLength:
+  Max: 25
+
+Metrics/AbcSize:
+  Max: 30
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Metrics/ModuleLength:
+  Max: 300
+
+Metrics/BlockLength:
+  Exclude:
+    - "*.gemspec"
+
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
+Metrics/ClassLength:
+  Max: 160

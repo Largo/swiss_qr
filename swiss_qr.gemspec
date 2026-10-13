@@ -8,20 +8,21 @@ Gem::Specification.new do |spec|
   spec.authors = ["Andi Idogawa"]
   spec.email = ["web@idogawa.com"]
 
-  spec.summary = "TODO: Write a short summary, because RubyGems requires one."
-  spec.description = "TODO: Write a longer description or delete this line."
-  spec.homepage = "TODO: Put your gem's website or public repo URL here."
+  spec.summary = "Parse and validate Swiss QR-bill (QR-Rechnung) payloads"
+  spec.description = <<~DESC.tr("\n", " ").strip
+    Parses the payload of a Swiss QR Code on a Swiss QR-bill (SIX Swiss Implementation
+    Guidelines for the QR-bill, "SPC"/"0200") into immutable value objects: account and
+    QR-IBAN, creditor and debtor addresses, amount, currency, QR/creditor reference,
+    message, Swico S1 billing information and alternative procedures. Validates every
+    rule of the guidelines, including IBAN, QR reference and ISO 11649 check digits.
+    Optionally reads the QR codes from images and PDFs with the qr_reader gem.
+  DESC
+  spec.homepage = "https://github.com/largo/swiss_qr"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
-  spec.metadata["allowed_push_host"] = "TODO: Set to your gem server 'https://example.com'"
+  spec.metadata["allowed_push_host"] = "https://rubygems.org"
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
-
-  # Uncomment the line below to require MFA for gem pushes.
-  # This helps protect your gem from supply chain attacks by ensuring
-  # no one can publish a new version without multi-factor authentication.
-  # See: https://guides.rubygems.org/mfa-requirement-opt-in/
-  # spec.metadata["rubygems_mfa_required"] = "true"
+  spec.metadata["rubygems_mfa_required"] = "true"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
@@ -36,9 +37,7 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  # Uncomment to register a new dependency of your gem
-  # spec.add_dependency "example-gem", "~> 1.0"
-
-  # For more information and examples about making a new gem, check out our
-  # guide at: https://guides.rubygems.org/make-your-own-gem/
+  # Bill#amount is a BigDecimal (a bundled, no longer default, gem since Ruby 3.4).
+  # The optional image/PDF reader, qr_reader, is not a runtime dependency.
+  spec.add_dependency "bigdecimal", ">= 3.1"
 end
