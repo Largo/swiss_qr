@@ -22,8 +22,8 @@ class TestParser < Minitest::Test
     assert_equal "210000000003139471430009017", bill.reference
     assert_equal "Order from 15.10.2020", bill.unstructured_message
     assert_equal "EPD", bill.trailer
-    assert_nil bill.bill_information
-    assert_nil bill.swico
+    assert_nil bill.raw_bill_information
+    assert_nil bill.raw_bill_information
     assert_empty bill.alternative_procedures
     assert_empty bill.errors
     assert_empty bill.warnings
@@ -66,14 +66,14 @@ class TestParser < Minitest::Test
   def test_trailing_empty_lines_after_alternative_procedures
     bill = SwissQr.parse(build_payload({}, extra: ["", "eBill/B/peter@sample.ch", "", ""]))
 
-    assert_nil bill.bill_information
+    assert_nil bill.raw_bill_information
     assert_equal ["eBill/B/peter@sample.ch"], bill.alternative_procedures
   end
 
   def test_empty_billing_information_line_keeps_alternative_procedure_position
     bill = SwissQr.parse(build_payload({}, extra: ["", "AP1", "AP2"]))
 
-    assert_nil bill.bill_information
+    assert_nil bill.raw_bill_information
     assert_equal %w[AP1 AP2], bill.alternative_procedures
   end
 
@@ -155,24 +155,24 @@ class TestParser < Minitest::Test
   end
 
   def test_qr_bill
-    assert SwissQr.qr_bill?(build_payload)
-    assert SwissQr.qr_bill?(build_payload({}, separator: "\r\n"))
-    assert SwissQr.qr_bill?("#{SwissQr::Parser::BOM}#{build_payload}")
-    assert SwissQr.qr_bill?(build_payload.b), "binary strings"
-    assert SwissQr.qr_bill?("SPC\n0200\n1"), "cheap check only"
-    refute SwissQr.qr_bill?("SPC")
-    refute SwissQr.qr_bill?("SPC\nabcd\n")
-    refute SwissQr.qr_bill?("https://example.com")
-    refute SwissQr.qr_bill?(nil)
-    refute SwissQr.qr_bill?(:SPC)
+    assert SwissQr.looks_like_qr_bill?(build_payload)
+    assert SwissQr.looks_like_qr_bill?(build_payload({}, separator: "\r\n"))
+    assert SwissQr.looks_like_qr_bill?("#{SwissQr::Parser::BOM}#{build_payload}")
+    assert SwissQr.looks_like_qr_bill?(build_payload.b), "binary strings"
+    assert SwissQr.looks_like_qr_bill?("SPC\n0200\n1"), "cheap check only"
+    refute SwissQr.looks_like_qr_bill?("SPC")
+    refute SwissQr.looks_like_qr_bill?("SPC\nabcd\n")
+    refute SwissQr.looks_like_qr_bill?("https://example.com")
+    refute SwissQr.looks_like_qr_bill?(nil)
+    refute SwissQr.looks_like_qr_bill?(:SPC)
   end
 
-  # qr_bill? must not skip what parse treats as a (possibly invalid) QR-bill.
-  def test_qr_bill_agrees_with_parse_on_blanks_around_the_header
+  # looks_like_qr_bill? must not skip what parse treats as a (possibly invalid) QR-bill.
+  def test_looks_like_qr_bill_agrees_with_parse_on_blanks_around_the_header
     [{ 1 => "SPC " }, { 1 => " SPC" }, { 2 => "0200 " }].each do |overrides|
       text = build_payload(overrides)
 
-      assert SwissQr.qr_bill?(text), overrides.inspect
+      assert SwissQr.looks_like_qr_bill?(text), overrides.inspect
       assert_problem SwissQr.parse(text, strict: false).errors, %i[header version]
       assert_raises(SwissQr::InvalidPayload) { SwissQr.read("x.png", reader: ->(_) { [text] }) }
     end
@@ -202,16 +202,16 @@ class TestParser < Minitest::Test
 
         assert_equal "Max Muster & Söhne", SwissQr.parse(encoded).creditor.name, encoding
         assert SwissQr.valid?(encoded), encoding
-        assert SwissQr.qr_bill?(encoded), encoding
+        assert SwissQr.looks_like_qr_bill?(encoded), encoding
       end
     end
     with_bom = "\uFEFF#{build_payload}".encode("UTF-16BE")
 
     assert_predicate SwissQr.parse(with_bom), :valid?
-    assert SwissQr.qr_bill?(with_bom)
+    assert SwissQr.looks_like_qr_bill?(with_bom)
     utf7 = build_payload.b.force_encoding("UTF-7") # a dummy encoding without a converter
 
-    assert SwissQr.qr_bill?(utf7)
+    assert SwissQr.looks_like_qr_bill?(utf7)
     assert SwissQr.valid?(utf7)
   end
 
@@ -330,7 +330,7 @@ class TestParser < Minitest::Test
     bill = SwissQr.parse(build_payload({}, extra: [" //S1/10/1234", "  ", "AP2 "]))
 
     assert_predicate bill, :valid?
-    assert_equal "//S1/10/1234", bill.bill_information
+    assert_equal "//S1/10/1234", bill.raw_bill_information
     assert_problem bill.warnings, :bill_information
     assert_problem bill.warnings, :alternative_procedures
   end
@@ -639,9 +639,9 @@ class TestParser < Minitest::Test
     assert_equal BigDecimal("1949.75"), hash[:amount]
     assert_equal :qrr, hash[:reference_type]
     assert_equal :structured, hash[:creditor][:type]
-    assert_equal Date.new(2020, 1, 1), hash[:swico][:invoice_date]
+    assert_equal Date.new(2020, 1, 1), hash[:bill_information][:invoice_date]
     assert_equal %i[version coding_type account qr_iban creditor ultimate_creditor amount currency debtor
-                    reference_type reference unstructured_message trailer bill_information swico
+                    reference_type reference unstructured_message trailer raw_bill_information bill_information
                     alternative_procedures errors warnings raw], hash.keys
   end
 

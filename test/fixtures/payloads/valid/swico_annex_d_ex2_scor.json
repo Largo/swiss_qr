@@ -33,8 +33,8 @@
   "reference": "RF22INV2026101401",
   "unstructured_message": "Hotel, 26.-27.02.2018",
   "trailer": "EPD",
-  "bill_information": "//S1/10/10104/11/180228/30/395856455/31/180226180227/32/3.7:400.19;7.7:553.39;0:14/40/0:30",
-  "swico": {
+  "raw_bill_information": "//S1/10/10104/11/180228/30/395856455/31/180226180227/32/3.7:400.19;7.7:553.39;0:14/40/0:30",
+  "bill_information": {
     "invoice_number": "10104",
     "invoice_date": "2018-02-28",
     "customer_reference": null,

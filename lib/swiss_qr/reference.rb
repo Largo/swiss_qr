@@ -33,8 +33,8 @@ module SwissQr
     end
 
     # Appends the check digit to up to 26 digits (left-padded with zeros):
-    # <tt>qrr("21000000000313947143000901")</tt> => "210000000003139471430009017".
-    def qrr(digits)
+    # <tt>build_qrr("21000000000313947143000901")</tt> => "210000000003139471430009017".
+    def build_qrr(digits)
       body = normalize(digits)
       raise ArgumentError, "QR reference body must be 1-26 digits" unless body.match?(/\A\d{1,26}\z/)
 
@@ -43,8 +43,8 @@ module SwissQr
     end
 
     # Builds a creditor reference from up to 21 alphanumerics:
-    # <tt>scor("539007547034")</tt> => "RF18539007547034".
-    def scor(payload)
+    # <tt>build_scor("539007547034")</tt> => "RF18539007547034".
+    def build_scor(payload)
       body = normalize(payload).upcase
       raise ArgumentError, "creditor reference body must be 1-21 alphanumerics" unless body.match?(/\A[A-Z0-9]{1,21}\z/)
 

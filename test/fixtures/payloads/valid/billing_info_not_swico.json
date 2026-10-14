@@ -23,8 +23,8 @@
   "reference": null,
   "unstructured_message": null,
   "trailer": "EPD",
-  "bill_information": "//XY/V1/order=4711/branch=7",
-  "swico": null,
+  "raw_bill_information": "//XY/V1/order=4711/branch=7",
+  "bill_information": null,
   "alternative_procedures": [],
   "errors": [],
   "warnings": []

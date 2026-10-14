@@ -34,8 +34,8 @@
   "reference": null,
   "unstructured_message": null,
   "trailer": "EPD",
+  "raw_bill_information": null,
   "bill_information": null,
-  "swico": null,
   "alternative_procedures": [
     "AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;AP1;A"
   ],

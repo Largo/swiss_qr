@@ -10,7 +10,7 @@ module SwissQr
     # tag byte-mode segments with; valid UTF-8 bytes in them are UTF-8.
     MISTAGGED_ENCODINGS = [Encoding::ISO_8859_1, Encoding::Windows_1252].freeze
     # Header lines as parse recognizes them (blanks around SPC and the
-    # version are tolerated here so that qr_bill? never skips what parse
+    # version are tolerated here so that looks_like_qr_bill? never skips what parse
     # would report as an invalid QR-bill).
     HEADER = /\A(?:\xEF\xBB\xBF)?[ \t]*SPC[ \t]*\r?\n[ \t]*\d{4}[ \t]*\r?\n/n
 
@@ -20,7 +20,7 @@ module SwissQr
 
     # Cheap check whether +text+ looks like a QR-bill payload ("SPC", a
     # line break, a four-digit version and another line break).
-    def self.qr_bill?(text)
+    def self.looks_like_qr_bill?(text)
       return false unless text.respond_to?(:to_str)
 
       text = text.to_str
@@ -194,15 +194,16 @@ module SwissQr
     end
 
     def additional_information(values, amount)
-      message, trailer, bill_information = values[29, 3]
+      message, trailer, raw_bill_information = values[29, 3]
       alternative_procedures = values[32, 2] || []
       check_notification(amount, message)
       check_trailer(trailer)
-      check_additional_information(message, bill_information)
-      swico = parse_bill_information(bill_information)
+      check_additional_information(message, raw_bill_information)
+      bill_information = parse_bill_information(raw_bill_information)
       check_alternative_procedures(alternative_procedures)
       {
-        unstructured_message: message, trailer: trailer, bill_information: bill_information, swico: swico,
+        unstructured_message: message, trailer: trailer, raw_bill_information: raw_bill_information,
+        bill_information: bill_information,
         alternative_procedures: alternative_procedures.compact.freeze
       }
     end

@@ -3,7 +3,7 @@ module SwissQr
 
   def self.parse: (String payload, ?strict: bool) -> Bill
   def self.valid?: (untyped payload) -> bool
-  def self.qr_bill?: (untyped text) -> bool
+  def self.looks_like_qr_bill?: (untyped text) -> bool
 
   # Anything with decode_all(input) -> Array[String], or a callable returning
   # a String, an Array of Strings (or objects with #text), or nil.
@@ -150,8 +150,8 @@ module SwissQr
     attr_reader reference: String?
     attr_reader unstructured_message: String?
     attr_reader trailer: String?
-    attr_reader bill_information: String?
-    attr_reader swico: BillInformation?
+    attr_reader raw_bill_information: String?
+    attr_reader bill_information: BillInformation?
     attr_reader alternative_procedures: Array[String]
     attr_reader errors: Array[Problem]
     attr_reader warnings: Array[Problem]
@@ -184,7 +184,7 @@ module SwissQr
 
     def self.normalize: (String? iban) -> String
     def self.valid?: (String? iban) -> bool
-    def self.qr_bill_account?: (String? iban) -> bool
+    def self.ch_or_li?: (String? iban) -> bool
     def self.qr_iban?: (String? iban) -> bool
     def self.qr_iid?: (String? iban) -> bool
     def self.iid: (String? iban) -> String?
@@ -206,8 +206,8 @@ module SwissQr
     def self.normalize: (String? reference) -> String
     def self.valid_qrr?: (String? reference) -> bool
     def self.valid_scor?: (String? reference) -> bool
-    def self.qrr: (String digits) -> String
-    def self.scor: (String payload) -> String
+    def self.build_qrr: (String digits) -> String
+    def self.build_scor: (String payload) -> String
     def self.format_qrr: (String reference) -> String
     def self.format_scor: (String reference) -> String
     def self.format: (String? reference, ?reference_type? type) -> String?
@@ -219,7 +219,7 @@ module SwissQr
     HEADER: Regexp
 
     def self.parse: (String payload, ?strict: bool) -> Bill
-    def self.qr_bill?: (untyped text) -> bool
+    def self.looks_like_qr_bill?: (untyped text) -> bool
     def initialize: (String payload) -> void
     def parse: (?strict: bool) -> Bill
   end

@@ -201,11 +201,11 @@ module SwissQr
     # or whatever else the reader accepts, such as a ChunkyPNG image - and
     # returns the first QR-bill as a Bill, or nil when there is none. A
     # String is always a path: image bytes in a String raise ArgumentError.
-    # Codes that are not QR-bills (see qr_bill?) are skipped. +strict+ is
+    # Codes that are not QR-bills (see looks_like_qr_bill?) are skipped. +strict+ is
     # passed on to parse.
     def read(input, reader: self.reader, strict: true)
       Reader.adapt(reader).each_text(Reader.check_input(input)) do |text|
-        return parse(text, strict: strict) if qr_bill?(text)
+        return parse(text, strict: strict) if looks_like_qr_bill?(text)
       end
       nil
     end
@@ -214,7 +214,7 @@ module SwissQr
     # the reader reported them; an empty Array when there is none.
     def read_all(input, reader: self.reader, strict: true)
       texts = Reader.adapt(reader).decode_all(Reader.check_input(input))
-      texts.select { |text| qr_bill?(text) }.map { |text| parse(text, strict: strict) }
+      texts.select { |text| looks_like_qr_bill?(text) }.map { |text| parse(text, strict: strict) }
     end
   end
 end

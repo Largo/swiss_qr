@@ -13,7 +13,7 @@ class TestFixtures < Minitest::Test
       assert_fixture_match expected_json("valid", name), bill.as_json
       assert_equal text, bill.raw
       assert SwissQr.valid?(text)
-      assert SwissQr.qr_bill?(text)
+      assert SwissQr.looks_like_qr_bill?(text)
       assert_equal bill, SwissQr.parse(text, strict: false)
       JSON.parse(bill.to_json) # round-trips as JSON
     end
@@ -58,7 +58,7 @@ class TestFixtures < Minitest::Test
 
   def test_non_spc_fatal_fixtures_are_not_qr_bills
     %w[wrong_header not_a_qr_bill_url six_ig22_field_labels empty].each do |name|
-      refute SwissQr.qr_bill?(payload("invalid", name)), name
+      refute SwissQr.looks_like_qr_bill?(payload("invalid", name)), name
     end
   end
 end

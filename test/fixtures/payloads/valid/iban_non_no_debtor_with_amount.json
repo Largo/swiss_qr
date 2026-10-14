@@ -23,8 +23,8 @@
   "reference": null,
   "unstructured_message": "Spende Jugendlager",
   "trailer": "EPD",
+  "raw_bill_information": null,
   "bill_information": null,
-  "swico": null,
   "alternative_procedures": [],
   "errors": [],
   "warnings": []

@@ -50,9 +50,9 @@ bill.reference_type                  # => :qrr (:qrr, :scor or :non)
 bill.reference                       # => "210000000003139471430009017"
 bill.formatted_reference             # => "21 00000 00003 13947 14300 09017"
 bill.unstructured_message            # => "Order from 15.10.2020"
-bill.swico&.invoice_number           # => "1234"
-bill.swico&.invoice_date             # => Date.new(2020, 10, 21)
-bill.swico&.payment_conditions       # => [#<data PaymentCondition discount=0.0, days=30>]
+bill.bill_information&.invoice_number      # => "1234"
+bill.bill_information&.invoice_date        # => Date.new(2020, 10, 21)
+bill.bill_information&.payment_conditions  # => [#<data PaymentCondition discount=0.0, days=30>]
 bill.alternative_procedures          # => ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"]
 bill.warnings                        # => [] (e.g. legacy address type "K")
 bill.to_h                            # Ruby types (BigDecimal, Date, Symbol), nested hashes
@@ -69,7 +69,7 @@ Input longer than 4096 bytes (more than any QR code holds) is rejected with
 
 ```ruby
 SwissQr.valid?(payload)              # => true / false, never raises
-SwissQr.qr_bill?(text)               # cheap "starts like SPC/0200" check, no validation
+SwissQr.looks_like_qr_bill?(text)               # cheap "starts like SPC/0200" check, no validation
 ```
 
 ## Reading QR-bills from images and PDFs
@@ -103,7 +103,7 @@ fax), and PDFs (scanned pages, as well as vector-drawn codes in generated
 PDFs). The Swiss cross in the middle of the code is no problem.
 
 Other QR codes on the page, such as a link to an online portal or a TWINT code,
-are skipped: only texts for which `SwissQr.qr_bill?` is true are parsed. `read`
+are skipped: only texts for which `SwissQr.looks_like_qr_bill?` is true are parsed. `read`
 stops at the first QR-bill. With the default reader it does not decode the
 rest of a long PDF.
 
@@ -231,8 +231,8 @@ All three are immutable (`Data`) and support `#to_h`, `#as_json` and `==`.
 | `reference` | String, nil | As given. `formatted_reference` groups the digits |
 | `unstructured_message` | String, nil | Free text |
 | `trailer` | String | `"EPD"` |
-| `bill_information` | String, nil | Raw billing information (line 32) |
-| `swico` | BillInformation, nil | Only when `bill_information` starts with `//S1/` |
+| `raw_bill_information` | String, nil | Billing information as given (line 32) |
+| `bill_information` | BillInformation, nil | The billing information parsed, when it uses the Swico S1 syntax (`//S1/...`) |
 | `alternative_procedures` | Array of String | At most 2 (e.g. `"eBill/B/..."`) |
 | `errors`, `warnings` | Array of Problem | `valid?` is `errors.empty?` |
 | `raw` | String | The payload as given (UTF-8) |
@@ -277,8 +277,8 @@ SwissQr::Iban.qr_iban?("CH4431999123000889012")       # => true
 SwissQr::Iban.format("CH4431999123000889012")         # => "CH44 3199 9123 0008 8901 2"
 SwissQr::Reference.valid_qrr?("210000000003139471430009017")   # => true
 SwissQr::Reference.valid_scor?("RF18 5390 0754 7034")          # => true
-SwissQr::Reference.qrr("21000000000313947143000901")           # => "210000000003139471430009017" (adds the check digit)
-SwissQr::Reference.scor("539007547034")                        # => "RF18539007547034"
+SwissQr::Reference.build_qrr("21000000000313947143000901")           # => "210000000003139471430009017" (adds the check digit)
+SwissQr::Reference.build_scor("539007547034")                        # => "RF18539007547034"
 SwissQr::Reference.format_qrr("210000000003139471430009017")   # => "21 00000 00003 13947 14300 09017"
 SwissQr::Reference.format_scor("RF18539007547034")             # => "RF18 5390 0754 7034"
 ```

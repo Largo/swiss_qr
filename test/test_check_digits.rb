@@ -30,10 +30,10 @@ class TestCheckDigits < Minitest::Test
     refute Iban.valid?(nil)
   end
 
-  def test_qr_bill_account_only_ch_and_li
-    assert Iban.qr_bill_account?("CH9300762011623852957")
-    assert Iban.qr_bill_account?("LI2108810000232401 3AA")
-    refute Iban.qr_bill_account?("DE89370400440532013000")
+  def test_ch_or_li_only
+    assert Iban.ch_or_li?("CH9300762011623852957")
+    assert Iban.ch_or_li?("LI2108810000232401 3AA")
+    refute Iban.ch_or_li?("DE89370400440532013000")
   end
 
   def test_qr_iban
@@ -83,14 +83,14 @@ class TestCheckDigits < Minitest::Test
   end
 
   def test_build_references
-    assert_equal "210000000003139471430009017", Reference.qrr("21000000000313947143000901")
-    assert_equal "#{"0" * 22}1234", Reference.qrr("1234")[0, 26]
-    assert Reference.valid_qrr?(Reference.qrr("1234"))
-    assert_equal "RF18539007547034", Reference.scor("539007547034")
-    assert_equal "RF240191230100405JSH0438", Reference.scor("0191230100405jsh0438")
-    assert Reference.valid_scor?(Reference.scor("A"))
-    assert_raises(ArgumentError) { Reference.qrr("1" * 27) }
-    assert_raises(ArgumentError) { Reference.scor("not-alnum") }
+    assert_equal "210000000003139471430009017", Reference.build_qrr("21000000000313947143000901")
+    assert_equal "#{"0" * 22}1234", Reference.build_qrr("1234")[0, 26]
+    assert Reference.valid_qrr?(Reference.build_qrr("1234"))
+    assert_equal "RF18539007547034", Reference.build_scor("539007547034")
+    assert_equal "RF240191230100405JSH0438", Reference.build_scor("0191230100405jsh0438")
+    assert Reference.valid_scor?(Reference.build_scor("A"))
+    assert_raises(ArgumentError) { Reference.build_qrr("1" * 27) }
+    assert_raises(ArgumentError) { Reference.build_scor("not-alnum") }
   end
 
   def test_format_references

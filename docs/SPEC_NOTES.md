@@ -185,7 +185,7 @@ Notes:
 - `SPC`, `0200`, `1` must match exactly. Processing: an invalid QRType, Version or Coding
   type means the payment is not processed [PR1.2 Table 4 #4–#6; IG2.4 §7.1 "The content must
   match a valid value; this applies for QR type, the version, the coding type and the currency"].
-- For `qr_bill?`, a cheap check: the payload starts with `SPC` followed by `\r\n` or `\n`.
+- For `looks_like_qr_bill?`, a cheap check: the payload starts with `SPC` followed by `\r\n` or `\n`.
   Suggestion: also require a second line of the form `\d{4}`.
 
 ### 3.2 Account (IBAN / QR-IBAN)
@@ -346,7 +346,7 @@ General rules [IG2.4 §4.2.2 line 32, §4.3.3, Annex D]:
   the invoice issuer"". Syntaxes must be agreed with SIX. "At the time of publication … only
   SIX (previously Swico) has published" one: **S1** [IG2.4 Annex D notes].
 - Errors here must not cause rejection (status A, §1.2). Parse unknown `//XX` prefixes as
-  raw strings only (`swico: nil`).
+  raw strings only (`bill_information: nil`).
 
 ### 5.1 S1 syntax (SIX, ex-Swico, Version 1.2)
 Sources: [S1 v1.2 23.11.2018 (Swico, FR), pp.3–7; IG2.4 Annex D Tables 28–31 ("Syntax definition

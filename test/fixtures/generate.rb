@@ -285,8 +285,8 @@ module FixtureGen
       "reference" => blank_to_nil(spec[:reference]),
       "unstructured_message" => blank_to_nil(spec[:message]),
       "trailer" => "EPD",
-      "bill_information" => blank_to_nil(spec[:bill_information]),
-      "swico" => swico_json(spec),
+      "raw_bill_information" => blank_to_nil(spec[:bill_information]),
+      "bill_information" => swico_json(spec),
       "alternative_procedures" => spec.fetch(:alternative_procedures, []),
       "errors" => [],
       "warnings" => warnings

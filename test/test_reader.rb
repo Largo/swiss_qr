@@ -286,7 +286,7 @@ class TestReader < Minitest::Test
     texts = []
     SwissQr::Reader.adapt(nil).each_text(image("invoice_two_pages.pdf")) do |text|
       texts << text
-      break if SwissQr.qr_bill?(text)
+      break if SwissQr.looks_like_qr_bill?(text)
     end
     assert_equal [payload("valid", "six_ig_ex2_qrr_swico_two_alt_procedures")], texts
     assert_equal texts.first, SwissQr.read(image("invoice_two_pages.pdf")).raw

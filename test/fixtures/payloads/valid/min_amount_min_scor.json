@@ -23,8 +23,8 @@
   "reference": "RF097",
   "unstructured_message": null,
   "trailer": "EPD",
+  "raw_bill_information": null,
   "bill_information": null,
-  "swico": null,
   "alternative_procedures": [],
   "errors": [],
   "warnings": []

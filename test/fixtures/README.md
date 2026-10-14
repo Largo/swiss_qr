@@ -65,7 +65,7 @@ under `strict: true`. The `.reason` file is one line in this format:
   - `payload`, for size, line count, character set or separators as a whole
 - `[fatal]` marks payloads that are not structurally a QR-bill: the QR type is
   not `SPC`, or there are fewer than 31 lines. These must raise
-  `InvalidPayload` even with `strict: false`, and `SwissQr.qr_bill?` should be
+  `InvalidPayload` even with `strict: false`, and `SwissQr.looks_like_qr_bill?` should be
   false for the non-`SPC` ones. Without `[fatal]`, `strict: false` must return a
   Bill whose `errors` include the field.
 

@@ -17,15 +17,16 @@ module SwissQr
   # [reference]            QR or creditor reference as given, or nil
   # [unstructured_message] free text or nil
   # [trailer]              "EPD"
-  # [bill_information]     raw billing information (line 32) or nil
-  # [swico]                BillInformation when +bill_information+ uses the S1 syntax
+  # [raw_bill_information] billing information as given (line 32) or nil
+  # [bill_information]     the billing information parsed (BillInformation)
+  #                        when it uses the Swico S1 syntax, else nil
   # [alternative_procedures] up to two strings (e.g. "eBill/B/...")
   # [errors, warnings]     Arrays of Problem
   # [raw]                  the payload as given
   Bill = Data.define(
     :version, :coding_type, :account, :qr_iban, :creditor, :ultimate_creditor,
     :amount, :currency, :debtor, :reference_type, :reference, :unstructured_message,
-    :trailer, :bill_information, :swico, :alternative_procedures,
+    :trailer, :raw_bill_information, :bill_information, :alternative_procedures,
     :errors, :warnings, :raw
   ) do
     def qr_iban? = qr_iban
@@ -57,7 +58,7 @@ module SwissQr
         creditor: creditor&.to_h,
         ultimate_creditor: ultimate_creditor&.to_h,
         debtor: debtor&.to_h,
-        swico: swico&.to_h,
+        bill_information: bill_information&.to_h,
         errors: errors.map(&:to_h),
         warnings: warnings.map(&:to_h)
       )
@@ -73,7 +74,7 @@ module SwissQr
         "ultimate_creditor" => ultimate_creditor&.as_json,
         "debtor" => debtor&.as_json,
         "reference_type" => reference_type&.to_s,
-        "swico" => swico&.as_json,
+        "bill_information" => bill_information&.as_json,
         "errors" => errors.map(&:as_json),
         "warnings" => warnings.map(&:as_json)
       )

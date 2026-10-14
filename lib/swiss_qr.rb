@@ -22,7 +22,7 @@ require_relative "swiss_qr/reader"
 #   bill.account          # => "CH4431999123000889012"
 #   bill.amount           # => 0.194975e4 (BigDecimal)
 #   bill.creditor.name    # => "Max Muster & Söhne"
-#   bill.swico&.invoice_number
+#   bill.bill_information&.invoice_number
 #
 #   SwissQr.read("invoice.pdf")      # first QR-bill in an image or PDF (needs a reader,
 #                                    # by default the qr_reader gem)
@@ -50,7 +50,7 @@ module SwissQr
 
   # Cheap check whether +text+ looks like a QR-bill payload at all, e.g. to
   # skip other QR codes on the same page. Does not validate.
-  def qr_bill?(text)
-    Parser.qr_bill?(text)
+  def looks_like_qr_bill?(text)
+    Parser.looks_like_qr_bill?(text)
   end
 end

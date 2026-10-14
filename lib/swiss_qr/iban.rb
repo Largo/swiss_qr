@@ -27,15 +27,16 @@ module SwissQr
       value.match?(PATTERN) && Checksum.mod97(value) == 1
     end
 
-    # True for a valid CH/LI IBAN usable on a QR-bill (QR-IBAN or ordinary).
-    def qr_bill_account?(iban)
+    # True for a valid IBAN of the Swiss payment area (CH or LI), the only
+    # accounts a QR-bill may name (QR-IBAN or ordinary).
+    def ch_or_li?(iban)
       value = normalize(iban)
       value.match?(QR_BILL_PATTERN) && Checksum.mod97(value) == 1
     end
 
     # True for a valid CH/LI QR-IBAN (institution id 30000..31999).
     def qr_iban?(iban)
-      qr_bill_account?(iban) && qr_iid?(normalize(iban))
+      ch_or_li?(iban) && qr_iid?(normalize(iban))
     end
 
     # True when a CH/LI-shaped IBAN carries a QR-IID; check digits are not

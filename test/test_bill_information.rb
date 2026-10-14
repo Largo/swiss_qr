@@ -130,14 +130,14 @@ class TestBillInformation < Minitest::Test
 
     assert_predicate bill, :valid?
     assert_problem bill.warnings, :bill_information
-    assert_nil bill.swico.invoice_date
+    assert_nil bill.bill_information.invoice_date
   end
 
   def test_bill_with_non_s1_billing_information
     bill = SwissQr.parse(build_payload({}, extra: ["//XY/V1/order=4711"]))
 
-    assert_equal "//XY/V1/order=4711", bill.bill_information
-    assert_nil bill.swico
+    assert_equal "//XY/V1/order=4711", bill.raw_bill_information
+    assert_nil bill.bill_information
     assert_empty bill.warnings
 
     bill = SwissQr.parse(build_payload({}, extra: ["free text"]))

@@ -10,7 +10,7 @@ class TestSwissQr < Minitest::Test
   def test_public_api
     assert_equal %i[payload strict], SwissQr.method(:parse).parameters.map(&:last)
     assert_respond_to SwissQr, :valid?
-    assert_respond_to SwissQr, :qr_bill?
+    assert_respond_to SwissQr, :looks_like_qr_bill?
     assert_equal %i[input reader strict], SwissQr.method(:read).parameters.map(&:last)
     assert_equal %i[input reader strict], SwissQr.method(:read_all).parameters.map(&:last)
     assert_respond_to SwissQr, :reader=
