@@ -70,23 +70,41 @@ class TestReader < Minitest::Test
 
     assert_equal expected, SwissQr.read(Pathname(path)).raw
     assert_equal expected, File.open(path, "rb") { |io| SwissQr.read(io) }.raw
-    assert_equal expected, SwissQr.read(File.binread(path)).raw
     assert_equal expected, SwissQr.read(StringIO.new(File.binread(path))).raw
+    assert_equal expected, SwissQr.read_all(StringIO.new(File.binread(path))).first.raw
+  end
+
+  # A String is always a path. Image bytes in a String fail before any reader
+  # sees them, so bytes from a client can never be taken for a server path.
+  def test_image_bytes_in_a_string_are_refused
+    called = false
+    spy = ->(_) { called = true }
+    %w[iban_scor_eur.png invoice_two_pages.pdf].each do |name|
+      bytes = File.binread(image(name))
+      [-> { SwissQr.read(bytes) }, -> { SwissQr.read_all(bytes) }, -> { SwissQr.read(bytes, reader: spy) }].each do |call|
+        error = assert_raises(ArgumentError, name) { call.call }
+        assert_match(/looks like image data.*StringIO/, error.message)
+      end
+    end
+    refute called
+    assert_raises(ArgumentError) { SwissQr.read("a\0b") }
+    # A String that is not image data goes to the reader as a path.
+    assert_raises(Errno::ENOENT) { SwissQr.read("/no/such/bill.png") }
   end
 
   def test_reader_errors_propagate
     assert_raises(Errno::ENOENT) { SwissQr.read(image("missing.png")) }
     truncated = File.binread(image("url_only.png")).byteslice(0, 100)
-    assert_raises(QrReaderHelper.qr_reader::ImageError) { SwissQr.read(truncated) }
+    assert_raises(QrReaderHelper.qr_reader::ImageError) { SwissQr.read(StringIO.new(truncated)) }
   end
 
   # qr_reader 0.0.2 raises UnsupportedImageError for such a PDF; the default
   # adapter turns that into "no codes".
   def test_pdf_without_any_image_or_code
     pdf = TestReader.text_only_pdf
-    assert_nil SwissQr.read(pdf)
-    assert_equal [], SwissQr.read_all(pdf)
-    assert_equal [], SwissQr.reader.decode_all(pdf)
+    assert_nil SwissQr.read(StringIO.new(pdf))
+    assert_equal [], SwissQr.read_all(StringIO.new(pdf))
+    assert_equal [], SwissQr.reader.decode_all(StringIO.new(pdf))
   end
 
   # A one-page PDF with a line of text and a black square, nothing else.
@@ -201,7 +219,7 @@ class TestReader < Minitest::Test
     assert_equal QrReaderHelper.qr_reader.decode_all(image("bill_and_url.png"), try_harder: false, inverted: false),
                  reader.decode_all(image("bill_and_url.png"))
     assert_equal 2, SwissQr.read_all(image("invoice_two_pages.pdf")).size
-    assert_nil SwissQr.read(TestReader.text_only_pdf), "keeps the no-images tolerance"
+    assert_nil SwissQr.read(StringIO.new(TestReader.text_only_pdf)), "keeps the no-images tolerance"
     assert_raises(ArgumentError) { SwissQr.read(image("bill_and_url.png"), reader: SwissQr::Reader::QrReaderAdapter.new(bogus: 1)) }
   end
 

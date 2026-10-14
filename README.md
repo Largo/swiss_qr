@@ -81,13 +81,22 @@ bill  = SwissQr.read("invoice.pdf")      # first QR-bill found, or nil
 bills = SwissQr.read_all("scans.pdf")    # every QR-bill on every page, [] when none
 ```
 
-`input` is passed to the reader unchanged. With the default reader
-(`qr_reader`) it can be:
+`input` can be:
 
 - a file path (`String` or `Pathname`),
-- an `IO`,
-- a binary `String` with the image bytes,
-- a `ChunkyPNG::Image`-like object (`#width`, `#height`, `#pixels`).
+- an `IO` with the image or PDF: a `File`, an upload's `Tempfile`, or
+  `StringIO.new(bytes)` for bytes you already hold,
+- with the default reader, also a `ChunkyPNG::Image`-like object (`#width`,
+  `#height`, `#pixels`).
+
+A `String` is always a file path, never image data, as with `File.read`. Image
+bytes in a `String` raise `ArgumentError` (wrap them in `StringIO.new`), so
+bytes uploaded by a client can never be taken for a path on the server:
+
+```ruby
+SwissQr.read(params[:invoice].tempfile)   # an upload
+SwissQr.read(StringIO.new(pdf_bytes))     # bytes from an API or a database
+```
 
 Supported formats are PNG, JPEG, JPEG 2000, GIF, BMP, PNM and TIFF (including
 fax), and PDFs (scanned pages, as well as vector-drawn codes in generated
@@ -117,6 +126,10 @@ all codes in the input. A reader is either:
 
 Elements may also be result objects with a `#text` method (for example
 `QrReader::Result`). `nil` elements are ignored.
+
+The reader gets the input as passed to `read`. A `String` it receives is
+always a file path, because image bytes in a `String` are refused before any
+reader is asked.
 
 The default reader is `SwissQr::Reader::QrReaderAdapter`. Creating it does not
 load anything. It runs `require "qr_reader"` on the first read. If the gem is

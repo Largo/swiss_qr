@@ -77,7 +77,7 @@ module SwissQr
     end
 
     def read_file(file)
-      input = file == "-" ? @stdin.binmode.read : file
+      input = file == "-" ? @stdin.binmode : file
       texts = Reader.adapt(SwissQr.reader).decode_all(input).select { |text| SwissQr.qr_bill?(text) }
       problem(INVALID, file, "no QR-bill found") if texts.empty?
       texts.filter_map { |text| parse(file, text) }
