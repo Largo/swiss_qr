@@ -190,7 +190,7 @@ Notes:
 
 ### 3.2 Account (IBAN / QR-IBAN)
 - 21 characters, no spaces, `CH` or `LI` [IG2.3/2.4 §4.2.2 line 4]. A normalizer may strip
-  spaces and upcase for the `account` attribute, but strict validation of the raw line should
+  spaces and upcase for the `iban` attribute, but strict validation of the raw line should
   flag spaces (IG2.3 explicitly adds "no spaces allowed" [Δ2.3 §1.1.4 item 4.1]).
 - Structure of a CH/LI (QR-)IBAN: positions 1–2 country code, 3–4 check digits, **5–9 IID or
   QR-IID**, 10–21 internal account number [IID1.1 §3.2, Illustration 2]. The account part may
@@ -346,7 +346,7 @@ General rules [IG2.4 §4.2.2 line 32, §4.3.3, Annex D]:
   the invoice issuer"". Syntaxes must be agreed with SIX. "At the time of publication … only
   SIX (previously Swico) has published" one: **S1** [IG2.4 Annex D notes].
 - Errors here must not cause rejection (status A, §1.2). Parse unknown `//XX` prefixes as
-  raw strings only (`bill_information: nil`).
+  raw strings only (`billing_information: nil`).
 
 ### 5.1 S1 syntax (SIX, ex-Swico, Version 1.2)
 Sources: [S1 v1.2 23.11.2018 (Swico, FR), pp.3–7; IG2.4 Annex D Tables 28–31 ("Syntax definition
@@ -515,7 +515,7 @@ reference `MW-2020-04`, UID `107978798`, VAT `[[2.5, 117.22]]`, conditions
 9. Addresses: S rules; K accepted with a warning plus the K-specific rules; ultimate creditor
    lines must all be empty; ultimate-debtor group "all D filled if any filled".
 10. `Ustrd + StrdBkgInf ≤ 140`. Billing info and alternative-procedure problems are
-    **warnings** (status A must not cause rejection). Parse `//S1` into `BillInformation`.
+    **warnings** (status A must not cause rejection). Parse `//S1` into `BillingInformation`.
 11. Optional rule-set switch: under IG 2.4 (from 2026-11-14), QRR/QR-IBAN with EUR is an error.
 
 ---

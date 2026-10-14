@@ -153,12 +153,12 @@ module SwissQr
     end
 
     def line_fields(lines)
-      %i[header version coding_type account] +
+      %i[header version coding_type iban] +
         address_fields(:creditor, lines[4]&.strip) +
         address_fields(:ultimate_creditor, lines[11]&.strip) +
         %i[amount currency] +
         address_fields(:debtor, lines[20]&.strip) +
-        %i[reference_type reference unstructured_message trailer bill_information
+        %i[reference_type reference unstructured_message trailer billing_information
            alternative_procedures alternative_procedures]
     end
 
@@ -173,11 +173,11 @@ module SwissQr
     end
 
     def parties_and_amount(values)
-      account = values[3] && Iban.normalize(values[3]).freeze
-      check_account(values[3], account)
+      iban = values[3] && Iban.normalize(values[3]).freeze
+      check_iban(values[3], iban)
       {
-        account: account,
-        qr_iban: !account.nil? && Iban.qr_iid?(account),
+        iban: iban,
+        qr_iban: !iban.nil? && Iban.qr_iid?(iban),
         creditor: build_address(:creditor, values[4, 7], required: true),
         ultimate_creditor: build_ultimate_creditor(values[11, 7]),
         amount: parse_amount(values[18]),
@@ -188,22 +188,22 @@ module SwissQr
 
     def reference_attributes(values, attributes)
       reference_type = parse_reference_type(values[27])
-      check_account_reference_type(attributes[:account], attributes[:qr_iban], reference_type, attributes[:currency])
+      check_iban_reference_type(attributes[:iban], attributes[:qr_iban], reference_type, attributes[:currency])
       check_reference(reference_type, values[28])
       { reference_type: reference_type, reference: values[28] }
     end
 
     def additional_information(values, amount)
-      message, trailer, raw_bill_information = values[29, 3]
+      message, trailer, raw_billing_information = values[29, 3]
       alternative_procedures = values[32, 2] || []
       check_notification(amount, message)
       check_trailer(trailer)
-      check_additional_information(message, raw_bill_information)
-      bill_information = parse_bill_information(raw_bill_information)
+      check_additional_information(message, raw_billing_information)
+      billing_information = parse_billing_information(raw_billing_information)
       check_alternative_procedures(alternative_procedures)
       {
-        unstructured_message: message, trailer: trailer, raw_bill_information: raw_bill_information,
-        bill_information: bill_information,
+        unstructured_message: message, trailer: trailer, raw_billing_information: raw_billing_information,
+        billing_information: billing_information,
         alternative_procedures: alternative_procedures.compact.freeze
       }
     end

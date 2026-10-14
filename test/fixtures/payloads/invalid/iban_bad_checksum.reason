@@ -1,1 +1,1 @@
-account: IBAN check digits are wrong (mod 97 != 1)
+iban: IBAN check digits are wrong (mod 97 != 1)

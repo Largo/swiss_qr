@@ -3,7 +3,7 @@
   "_note": "valid under IG 2.3 (in force); IG 2.4 (from 2026-11-14) restricts QR-IBAN/QRR to CHF",
   "version": "0200",
   "coding_type": "1",
-  "account": "CH6630808001234567890",
+  "iban": "CH6630808001234567890",
   "qr_iban": true,
   "creditor": {
     "type": "structured",
@@ -34,8 +34,8 @@
   "reference": "000000000000000000000047119",
   "unstructured_message": null,
   "trailer": "EPD",
-  "raw_bill_information": null,
-  "bill_information": null,
+  "raw_billing_information": null,
+  "billing_information": null,
   "alternative_procedures": [],
   "errors": [],
   "warnings": []

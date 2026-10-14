@@ -33,14 +33,14 @@ class TestCLI < Minitest::Test
                  bills.map { |bill| bill["file"] })
     assert_fixture_match expected_json("valid", "six_ig_ex1_qrr"), bills.first
     assert_equal payload("valid", "six_ig_ex1_qrr"), bills.first["raw"]
-    assert_equal %w[CH4431999123000889012 CH9300762011623852957], bills.drop(1).map { |bill| bill["account"] }.sort
+    assert_equal %w[CH4431999123000889012 CH9300762011623852957], bills.drop(1).map { |bill| bill["iban"] }.sort
   end
 
   def test_unrelated_codes_are_skipped
     out, err, status = swiss_qr(image("bill_and_url.png"))
 
     assert_equal 0, status, err
-    assert_equal(["CH66083900350A1234567"], JSON.parse(out).map { |bill| bill["account"] })
+    assert_equal(["CH66083900350A1234567"], JSON.parse(out).map { |bill| bill["iban"] })
   end
 
   def test_no_bill_found

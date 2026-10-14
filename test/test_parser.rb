@@ -8,7 +8,7 @@ class TestParser < Minitest::Test
 
     assert_equal "0200", bill.version
     assert_equal "1", bill.coding_type
-    assert_equal "CH4431999123000889012", bill.account
+    assert_equal "CH4431999123000889012", bill.iban
     assert_predicate bill, :qr_iban?
     assert_equal :structured, bill.creditor.type
     assert_equal "Max Muster & Söhne", bill.creditor.name
@@ -22,8 +22,8 @@ class TestParser < Minitest::Test
     assert_equal "210000000003139471430009017", bill.reference
     assert_equal "Order from 15.10.2020", bill.unstructured_message
     assert_equal "EPD", bill.trailer
-    assert_nil bill.raw_bill_information
-    assert_nil bill.raw_bill_information
+    assert_nil bill.raw_billing_information
+    assert_nil bill.raw_billing_information
     assert_empty bill.alternative_procedures
     assert_empty bill.errors
     assert_empty bill.warnings
@@ -66,14 +66,14 @@ class TestParser < Minitest::Test
   def test_trailing_empty_lines_after_alternative_procedures
     bill = SwissQr.parse(build_payload({}, extra: ["", "eBill/B/peter@sample.ch", "", ""]))
 
-    assert_nil bill.raw_bill_information
+    assert_nil bill.raw_billing_information
     assert_equal ["eBill/B/peter@sample.ch"], bill.alternative_procedures
   end
 
   def test_empty_billing_information_line_keeps_alternative_procedure_position
     bill = SwissQr.parse(build_payload({}, extra: ["", "AP1", "AP2"]))
 
-    assert_nil bill.raw_bill_information
+    assert_nil bill.raw_billing_information
     assert_equal %w[AP1 AP2], bill.alternative_procedures
   end
 
@@ -99,9 +99,9 @@ class TestParser < Minitest::Test
     text = build_payload(4 => "CH4431999123000889013", 19 => "50", 20 => "USD")
     error = assert_raises(SwissQr::InvalidPayload) { SwissQr.parse(text) }
 
-    assert_equal %i[account amount currency], error.errors.map(&:field)
+    assert_equal %i[iban amount currency], error.errors.map(&:field)
     assert(error.errors.all?(SwissQr::Problem))
-    assert_match(/\Ainvalid QR-bill payload: account: /, error.message)
+    assert_match(/\Ainvalid QR-bill payload: iban: /, error.message)
     assert_kind_of SwissQr::Bill, error.bill
     assert_equal error.errors, error.bill.errors
     assert_kind_of SwissQr::Error, error
@@ -280,7 +280,7 @@ class TestParser < Minitest::Test
     bill = SwissQr.parse(build_payload({}, extra: ["//S1/10/Ж", "AP – 1"]))
 
     assert_predicate bill, :valid?
-    assert_problem bill.warnings, :bill_information
+    assert_problem bill.warnings, :billing_information
     assert_problem bill.warnings, :alternative_procedures
   end
 
@@ -307,7 +307,7 @@ class TestParser < Minitest::Test
 
   def test_inner_and_trailing_blanks_in_the_iban_are_both_errors
     ["CH4431999123000889012 ", "CH44 31999123000889012"].each do |account|
-      assert_problem SwissQr.parse(build_payload(4 => account), strict: false).errors, :account
+      assert_problem SwissQr.parse(build_payload(4 => account), strict: false).errors, :iban
     end
   end
 
@@ -330,23 +330,23 @@ class TestParser < Minitest::Test
     bill = SwissQr.parse(build_payload({}, extra: [" //S1/10/1234", "  ", "AP2 "]))
 
     assert_predicate bill, :valid?
-    assert_equal "//S1/10/1234", bill.raw_bill_information
-    assert_problem bill.warnings, :bill_information
+    assert_equal "//S1/10/1234", bill.raw_billing_information
+    assert_problem bill.warnings, :billing_information
     assert_problem bill.warnings, :alternative_procedures
   end
 
-  # --- account and references ---------------------------------------------
+  # --- IBAN and references -- ---------------------------------------------
 
   def test_account_normalization
     bill = SwissQr.parse(build_payload(4 => "ch4431999123000889012"))
 
-    assert_equal "CH4431999123000889012", bill.account
-    assert_problem bill.warnings, :account
+    assert_equal "CH4431999123000889012", bill.iban
+    assert_problem bill.warnings, :iban
 
     bill = SwissQr.parse(build_payload(4 => "CH44 3199 9123 0008 8901 2"), strict: false)
 
-    assert_equal "CH4431999123000889012", bill.account
-    assert_problem bill.errors, :account
+    assert_equal "CH4431999123000889012", bill.iban
+    assert_problem bill.errors, :iban
   end
 
   # "ſ".upcase == "S" and "ı".upcase == "I": the account must not be
@@ -356,8 +356,8 @@ class TestParser < Minitest::Test
       bill = SwissQr.parse(build_payload(4 => account, 28 => "NON", 29 => ""), strict: false)
 
       refute_predicate bill, :valid?, account
-      assert_problem bill.errors, :account
-      refute_equal account.upcase, bill.account
+      assert_problem bill.errors, :iban
+      refute_equal account.upcase, bill.iban
     end
     refute SwissQr::Iban.valid?("CH910076201162385295ſ")
   end
@@ -372,7 +372,7 @@ class TestParser < Minitest::Test
     }.each do |account, message|
       bill = SwissQr.parse(build_payload(4 => account), strict: false)
 
-      assert(bill.errors.any? { |p| p.field == :account && p.message.match?(message) }, account)
+      assert(bill.errors.any? { |p| p.field == :iban && p.message.match?(message) }, account)
     end
   end
 
@@ -639,9 +639,9 @@ class TestParser < Minitest::Test
     assert_equal BigDecimal("1949.75"), hash[:amount]
     assert_equal :qrr, hash[:reference_type]
     assert_equal :structured, hash[:creditor][:type]
-    assert_equal Date.new(2020, 1, 1), hash[:bill_information][:invoice_date]
-    assert_equal %i[version coding_type account qr_iban creditor ultimate_creditor amount currency debtor
-                    reference_type reference unstructured_message trailer raw_bill_information bill_information
+    assert_equal Date.new(2020, 1, 1), hash[:billing_information][:invoice_date]
+    assert_equal %i[version coding_type iban qr_iban creditor ultimate_creditor amount currency debtor
+                    reference_type reference unstructured_message trailer raw_billing_information billing_information
                     alternative_procedures errors warnings raw], hash.keys
   end
 
@@ -661,7 +661,7 @@ class TestParser < Minitest::Test
   def test_display_helpers
     bill = SwissQr.parse(build_payload(19 => "1949.70"))
 
-    assert_equal "CH44 3199 9123 0008 8901 2", bill.formatted_account
+    assert_equal "CH44 3199 9123 0008 8901 2", bill.formatted_iban
     assert_equal "21 00000 00003 13947 14300 09017", bill.formatted_reference
     assert_equal "1949.70", bill.formatted_amount
     assert_equal "999999999.99", SwissQr::Bill.amount_string(BigDecimal("999999999.99"))

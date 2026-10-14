@@ -2,7 +2,7 @@
   "_source": "SIX IG QR-bill v2.4 figure 1, QR code on p. 11",
   "version": "0200",
   "coding_type": "1",
-  "account": "CH4431999123000889012",
+  "iban": "CH4431999123000889012",
   "qr_iban": true,
   "creditor": {
     "type": "structured",
@@ -33,8 +33,8 @@
   "reference": "210000000003139471430009017",
   "unstructured_message": "Auftrag vom 15.06.2020",
   "trailer": "EPD",
-  "raw_bill_information": "//S1/10/10201409/11/200701/20/140.000-53/30/102673831/31/200615/32/7.7/33/7.7:139.40/40/0:30",
-  "bill_information": {
+  "raw_billing_information": "//S1/10/10201409/11/200701/20/140.000-53/30/102673831/31/200615/32/7.7/33/7.7:139.40/40/0:30",
+  "billing_information": {
     "invoice_number": "10201409",
     "invoice_date": "2020-07-01",
     "customer_reference": "140.000-53",

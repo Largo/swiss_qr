@@ -6,8 +6,8 @@ module SwissQr
   # A parsed Swiss QR-bill payload. Immutable.
   #
   # [version, coding_type] "0200" and "1"
-  # [account]              IBAN or QR-IBAN, without spaces, upper case
-  # [qr_iban]              true when +account+ is a QR-IBAN (also #qr_iban?)
+  # [iban]                 IBAN or QR-IBAN, without spaces, upper case
+  # [qr_iban]              true when +iban+ is a QR-IBAN (also #qr_iban?)
   # [creditor]             Address
   # [ultimate_creditor]    Address or nil (reserved by SIX, must be empty)
   # [amount]               BigDecimal, or nil when the payer fills in the amount
@@ -17,16 +17,16 @@ module SwissQr
   # [reference]            QR or creditor reference as given, or nil
   # [unstructured_message] free text or nil
   # [trailer]              "EPD"
-  # [raw_bill_information] billing information as given (line 32) or nil
-  # [bill_information]     the billing information parsed (BillInformation)
+  # [raw_billing_information] billing information as given (line 32) or nil
+  # [billing_information]     the billing information parsed (BillingInformation)
   #                        when it uses the Swico S1 syntax, else nil
   # [alternative_procedures] up to two strings (e.g. "eBill/B/...")
   # [errors, warnings]     Arrays of Problem
   # [raw]                  the payload as given
   Bill = Data.define(
-    :version, :coding_type, :account, :qr_iban, :creditor, :ultimate_creditor,
+    :version, :coding_type, :iban, :qr_iban, :creditor, :ultimate_creditor,
     :amount, :currency, :debtor, :reference_type, :reference, :unstructured_message,
-    :trailer, :raw_bill_information, :bill_information, :alternative_procedures,
+    :trailer, :raw_billing_information, :billing_information, :alternative_procedures,
     :errors, :warnings, :raw
   ) do
     def qr_iban? = qr_iban
@@ -40,7 +40,7 @@ module SwissQr
     # True when the payer has to fill in the amount.
     def open_amount? = amount.nil?
 
-    def formatted_account = account && Iban.format(account)
+    def formatted_iban = iban && Iban.format(iban)
 
     def formatted_reference = reference && Reference.format(reference, reference_type)
 
@@ -58,7 +58,7 @@ module SwissQr
         creditor: creditor&.to_h,
         ultimate_creditor: ultimate_creditor&.to_h,
         debtor: debtor&.to_h,
-        bill_information: bill_information&.to_h,
+        billing_information: billing_information&.to_h,
         errors: errors.map(&:to_h),
         warnings: warnings.map(&:to_h)
       )
@@ -74,7 +74,7 @@ module SwissQr
         "ultimate_creditor" => ultimate_creditor&.as_json,
         "debtor" => debtor&.as_json,
         "reference_type" => reference_type&.to_s,
-        "bill_information" => bill_information&.as_json,
+        "billing_information" => billing_information&.as_json,
         "errors" => errors.map(&:as_json),
         "warnings" => warnings.map(&:as_json)
       )

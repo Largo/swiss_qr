@@ -39,7 +39,7 @@ module SwissQr
     ].freeze
 
     # Elements with a fixed format, where blanks are never part of the value.
-    FIXED_FORMAT_FIELDS = %i[header version coding_type account amount currency reference_type reference
+    FIXED_FORMAT_FIELDS = %i[header version coding_type iban amount currency reference_type reference
                              trailer].freeze
 
     STRUCTURED_FIELDS = %i[type name street building_number postal_code town country].freeze
@@ -125,23 +125,23 @@ module SwissQr
       error(:coding_type, %(coding type must be "#{CODING_TYPE}" (got #{coding_type.inspect}))) if coding_type != CODING_TYPE
     end
 
-    def check_account(raw, account)
-      return error(:account, "IBAN is mandatory") if raw.nil?
+    def check_iban(raw, iban)
+      return error(:iban, "IBAN is mandatory") if raw.nil?
 
-      error(:account, "IBAN must be given without spaces") if raw.match?(/[[:space:]]/)
-      return error(:account, "IBAN may only contain letters and digits") if raw.match?(/[^A-Za-z0-9[:space:]]/)
+      error(:iban, "IBAN must be given without spaces") if raw.match?(/[[:space:]]/)
+      return error(:iban, "IBAN may only contain letters and digits") if raw.match?(/[^A-Za-z0-9[:space:]]/)
 
-      warning(:account, "IBAN should be in upper case") if raw.match?(/[a-z]/)
-      if !account.match?(/\A[A-Z0-9]+\z/)
-        error(:account, "IBAN may only contain letters and digits")
-      elsif account.match?(/\A[A-Z]{2}/) && !Iban::COUNTRIES.include?(account[0, 2])
-        error(:account, "only CH and LI IBANs are permitted (got #{account[0, 2]})")
-      elsif account.length != 21
-        error(:account, "IBAN must be exactly 21 characters (got #{account.length})")
-      elsif !account.match?(Iban::QR_BILL_PATTERN)
-        error(:account, "malformed CH/LI IBAN: country, 2 check digits, 5-digit institution id, 12-character account")
-      elsif Checksum.mod97(account) != 1
-        error(:account, "IBAN check digits are wrong (mod 97 != 1)")
+      warning(:iban, "IBAN should be in upper case") if raw.match?(/[a-z]/)
+      if !iban.match?(/\A[A-Z0-9]+\z/)
+        error(:iban, "IBAN may only contain letters and digits")
+      elsif iban.match?(/\A[A-Z]{2}/) && !Iban::COUNTRIES.include?(iban[0, 2])
+        error(:iban, "only CH and LI IBANs are permitted (got #{iban[0, 2]})")
+      elsif iban.length != 21
+        error(:iban, "IBAN must be exactly 21 characters (got #{iban.length})")
+      elsif !iban.match?(Iban::QR_BILL_PATTERN)
+        error(:iban, "malformed CH/LI IBAN: country, 2 check digits, 5-digit institution id, 12-character account")
+      elsif Checksum.mod97(iban) != 1
+        error(:iban, "IBAN check digits are wrong (mod 97 != 1)")
       end
     end
 
@@ -283,14 +283,14 @@ module SwissQr
     end
 
     # QR-IBAN requires QRR; an ordinary IBAN forbids it.
-    def check_account_reference_type(account, qr_iban, reference_type, currency)
-      return if reference_type.nil? || account.nil? || !account.match?(Iban::QR_BILL_PATTERN)
+    def check_iban_reference_type(iban, qr_iban, reference_type, currency)
+      return if reference_type.nil? || iban.nil? || !iban.match?(Iban::QR_BILL_PATTERN)
 
       if qr_iban && reference_type != :qrr
         error(:reference_type, "a QR-IBAN requires reference type QRR (got #{reference_type.to_s.upcase})")
       elsif !qr_iban && reference_type == :qrr
         error(:reference_type, "reference type QRR requires a QR-IBAN (institution id 30000-31999); " \
-                               "#{account} is an ordinary IBAN")
+                               "#{iban} is an ordinary IBAN")
       elsif reference_type == :qrr && currency == "EUR"
         warning(:currency, "from IG 2.4 (in force 14 Nov 2026) a QR-IBAN with QR reference may only be used for CHF")
       end
@@ -333,13 +333,13 @@ module SwissQr
       end
     end
 
-    def check_additional_information(message, bill_information)
+    def check_additional_information(message, billing_information)
       if message && message.length > MAX_MESSAGE_LENGTH
         check_length(:unstructured_message, message, MAX_MESSAGE_LENGTH, "unstructured message")
-      elsif message.to_s.length + bill_information.to_s.length > MAX_MESSAGE_LENGTH
+      elsif message.to_s.length + billing_information.to_s.length > MAX_MESSAGE_LENGTH
         error(:unstructured_message,
               "unstructured message (#{message.to_s.length}) and billing information " \
-              "(#{bill_information.to_s.length}) together exceed #{MAX_MESSAGE_LENGTH} characters")
+              "(#{billing_information.to_s.length}) together exceed #{MAX_MESSAGE_LENGTH} characters")
       end
     end
 
@@ -351,15 +351,15 @@ module SwissQr
     end
 
     # Billing information is status A: problems are warnings only.
-    def parse_bill_information(value)
+    def parse_billing_information(value)
       return nil if value.nil?
 
       unless value.start_with?("//")
-        warning(:bill_information, 'billing information should start with "//" and a syntax identifier such as "S1"')
+        warning(:billing_information, 'billing information should start with "//" and a syntax identifier such as "S1"')
       end
-      return nil unless BillInformation.s1?(value)
+      return nil unless BillingInformation.s1?(value)
 
-      info = BillInformation.parse(value)
+      info = BillingInformation.parse(value)
       @warnings.concat(info.warnings)
       info
     end

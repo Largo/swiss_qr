@@ -6,7 +6,7 @@ module SwissQr
 
   # One violation of the QR-bill rules.
   #
-  # +field+ is a Symbol naming the offending element, e.g. +:account+,
+  # +field+ is a Symbol naming the offending element, e.g. +:iban+,
   # +:"creditor.name"+, +:reference+ or +:payload+ (for problems with the
   # payload as a whole: size, line count, separators, encoding).
   Problem = Data.define(:field, :message) do

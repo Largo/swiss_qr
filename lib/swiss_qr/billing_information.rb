@@ -15,7 +15,7 @@ module SwissQr
   # a value is written "\/", a literal "\" as "\\". Unknown tags are kept
   # in +unknown_tags+. Problems never make the bill invalid (billing
   # information has status A in the IG); they are collected in +warnings+.
-  BillInformation = Data.define(
+  BillingInformation = Data.define(
     :raw, :invoice_number, :invoice_date, :customer_reference, :vat_number,
     :vat_dates, :vat_details, :vat_import_taxes, :payment_conditions,
     :unknown_tags, :warnings
@@ -68,12 +68,12 @@ module SwissQr
     end
   end
 
-  class BillInformation
+  class BillingInformation
     # One VAT rate in percent and the amount it applies to (/32/: net
     # amount, or nil when one rate covers the whole bill; /33/: VAT amount).
     VatRate = Data.define(:rate, :amount) do
       def as_json(*)
-        { "rate" => BillInformation.decimal_string(rate), "amount" => BillInformation.decimal_string(amount) }
+        { "rate" => BillingInformation.decimal_string(rate), "amount" => BillingInformation.decimal_string(amount) }
       end
     end
 
@@ -81,14 +81,14 @@ module SwissQr
     # (+discount+ 0 = net payment term).
     PaymentCondition = Data.define(:discount, :days) do
       def as_json(*)
-        { "discount" => BillInformation.decimal_string(discount), "days" => days }
+        { "discount" => BillingInformation.decimal_string(discount), "days" => days }
       end
     end
 
-    # Tokenizer and value parser behind BillInformation.parse.
+    # Tokenizer and value parser behind BillingInformation.parse.
     # @api private
     class S1Parser
-      FIELD = :bill_information
+      FIELD = :billing_information
       KNOWN_TAGS = %w[10 11 20 30 31 32 33 40].freeze
       DECIMAL = /\A\d+(?:\.\d+)?\z/
 
@@ -99,7 +99,7 @@ module SwissQr
 
       def parse
         values = collect_tags
-        BillInformation.new(
+        BillingInformation.new(
           raw: @text.dup.freeze,
           invoice_number: values["10"],
           invoice_date: values["11"] && parse_dates(values["11"], "/11/ invoice date", max: 1)&.first,
@@ -124,7 +124,7 @@ module SwissQr
       # Splits on unescaped "/" and unescapes "\/" and "\\".
       def tokens
         result = [+""]
-        chars = @text[(BillInformation.prefix.length - 1)..].each_char
+        chars = @text[(BillingInformation.prefix.length - 1)..].each_char
         loop do
           char = chars.next
           if char == "\\"
@@ -190,7 +190,7 @@ module SwissQr
 
       # "/32/7.7" (one rate for the whole amount) or "8:1000;2.5:51.80".
       def parse_vat_details(value)
-        return [BillInformation::VatRate.new(rate: BigDecimal(value), amount: nil)].freeze if value.match?(DECIMAL)
+        return [BillingInformation::VatRate.new(rate: BigDecimal(value), amount: nil)].freeze if value.match?(DECIMAL)
 
         parse_pairs(value, "/32/ VAT details")
       end
@@ -200,7 +200,7 @@ module SwissQr
         pairs&.map do |rate, amount|
           return warn("#{label}: #{rate}:#{amount} is not rate:amount") unless rate.match?(DECIMAL) && amount.match?(DECIMAL)
 
-          BillInformation::VatRate.new(rate: BigDecimal(rate), amount: BigDecimal(amount))
+          BillingInformation::VatRate.new(rate: BigDecimal(rate), amount: BigDecimal(amount))
         end&.freeze
       end
 
@@ -211,7 +211,7 @@ module SwissQr
             return warn("/40/ payment conditions: #{discount}:#{days} is not discount:days")
           end
 
-          BillInformation::PaymentCondition.new(discount: BigDecimal(discount), days: days.to_i)
+          BillingInformation::PaymentCondition.new(discount: BigDecimal(discount), days: days.to_i)
         end&.freeze
       end
 

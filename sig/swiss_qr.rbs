@@ -102,7 +102,7 @@ module SwissQr
     def as_json: (*untyped) -> Hash[String, String?]
   end
 
-  class BillInformation < Data
+  class BillingInformation < Data
     class VatRate < Data
       attr_reader rate: BigDecimal
       attr_reader amount: BigDecimal?
@@ -131,7 +131,7 @@ module SwissQr
 
     def self.prefix: () -> String
     def self.s1?: (untyped text) -> bool
-    def self.parse: (String text) -> BillInformation
+    def self.parse: (String text) -> BillingInformation
     def self.decimal_string: (BigDecimal? value) -> String?
     def as_json: (*untyped) -> Hash[String, untyped]
   end
@@ -139,7 +139,7 @@ module SwissQr
   class Bill < Data
     attr_reader version: String?
     attr_reader coding_type: String?
-    attr_reader account: String?
+    attr_reader iban: String?
     attr_reader qr_iban: bool
     attr_reader creditor: Address?
     attr_reader ultimate_creditor: Address?
@@ -150,8 +150,8 @@ module SwissQr
     attr_reader reference: String?
     attr_reader unstructured_message: String?
     attr_reader trailer: String?
-    attr_reader raw_bill_information: String?
-    attr_reader bill_information: BillInformation?
+    attr_reader raw_billing_information: String?
+    attr_reader billing_information: BillingInformation?
     attr_reader alternative_procedures: Array[String]
     attr_reader errors: Array[Problem]
     attr_reader warnings: Array[Problem]
@@ -162,7 +162,7 @@ module SwissQr
     def valid?: () -> bool
     def notification?: () -> bool
     def open_amount?: () -> bool
-    def formatted_account: () -> String?
+    def formatted_iban: () -> String?
     def formatted_reference: () -> String?
     def formatted_amount: () -> String?
     def as_json: (*untyped) -> Hash[String, untyped]

@@ -2,7 +2,7 @@
   "_source": "SIX Style Guide QR-bill pp. 21/28; introduction script p. 13",
   "version": "0200",
   "coding_type": "1",
-  "account": "CH5800791123000889012",
+  "iban": "CH5800791123000889012",
   "qr_iban": false,
   "creditor": {
     "type": "structured",
@@ -33,8 +33,8 @@
   "reference": "RF18539007547034",
   "unstructured_message": null,
   "trailer": "EPD",
-  "raw_bill_information": "//S1/10/10201409/11/170309/20/14000000/30/106017086/31/210122",
-  "bill_information": {
+  "raw_billing_information": "//S1/10/10201409/11/170309/20/14000000/30/106017086/31/210122",
+  "billing_information": {
     "invoice_number": "10201409",
     "invoice_date": "2017-03-09",
     "customer_reference": "14000000",

@@ -329,7 +329,7 @@ class TestReader < Minitest::Test
           puts e.cause.class
         end
         SwissQr.reader = ->(_input) { payload }  # a replacement reader works
-        puts SwissQr.read(ARGV[1]).account
+        puts SwissQr.read(ARGV[1]).iban
       RUBY
       out, err, status = run_ruby(script, shadow, File.join(FIXTURES, "valid", "six_ig_ex1_qrr.txt"), image("six_ig_ex1_qrr.png"))
 

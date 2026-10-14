@@ -2,7 +2,7 @@
   "_source": "hand-built (generate.rb)",
   "version": "0200",
   "coding_type": "1",
-  "account": "CH6630808001234567890",
+  "iban": "CH6630808001234567890",
   "qr_iban": true,
   "creditor": {
     "type": "structured",
@@ -33,8 +33,8 @@
   "reference": "000000000000000000000047119",
   "unstructured_message": null,
   "trailer": "EPD",
-  "raw_bill_information": "//S1/10/X.66711\\/8824/11/200712/20/MW-2020-04/30/107978798/32/2.5:117.22/40/3:5;1.5:20;1:40;0:60",
-  "bill_information": {
+  "raw_billing_information": "//S1/10/X.66711\\/8824/11/200712/20/MW-2020-04/30/107978798/32/2.5:117.22/40/3:5;1.5:20;1:40;0:60",
+  "billing_information": {
     "invoice_number": "X.66711/8824",
     "invoice_date": "2020-07-12",
     "customer_reference": "MW-2020-04",

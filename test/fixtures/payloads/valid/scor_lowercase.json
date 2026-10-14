@@ -3,7 +3,7 @@
   "_note": "IG 4.2.2: banks do not distinguish upper/lower case in references; reference kept as given",
   "version": "0200",
   "coding_type": "1",
-  "account": "CH66083900350A1234567",
+  "iban": "CH66083900350A1234567",
   "qr_iban": false,
   "creditor": {
     "type": "structured",
@@ -24,8 +24,8 @@
   "reference": "rf22inv2026101401",
   "unstructured_message": null,
   "trailer": "EPD",
-  "raw_bill_information": null,
-  "bill_information": null,
+  "raw_billing_information": null,
+  "billing_information": null,
   "alternative_procedures": [],
   "errors": [],
   "warnings": []

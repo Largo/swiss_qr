@@ -7,7 +7,7 @@ coding type `1`, trailer `EPD`). It can also find the code in images and PDFs.
 
 - **Parser with no dependencies** other than `bigdecimal`. Values come back as
   immutable `Data` objects: `SwissQr::Bill`, `SwissQr::Address` and
-  `SwissQr::BillInformation` (Swico/SIX "S1" billing information).
+  `SwissQr::BillingInformation` (Swico/SIX "S1" billing information).
 - **Checks every payload rule:** header, IBAN and QR-IBAN check digits, the
   reference type against the account, QR reference (modulo 10 recursive), ISO
   11649 creditor reference (modulo 97), amount, currency, addresses, the
@@ -37,9 +37,9 @@ or `gem install swiss_qr qr_reader`. Requires Ruby 3.2 or newer.
 require "swiss_qr"
 
 bill = SwissQr.parse(payload)       # raises SwissQr::InvalidPayload on any rule violation
-bill.account                         # => "CH4431999123000889012"
+bill.iban                            # => "CH4431999123000889012"
 bill.qr_iban?                        # => true
-bill.formatted_account               # => "CH44 3199 9123 0008 8901 2"
+bill.formatted_iban                  # => "CH44 3199 9123 0008 8901 2"
 bill.amount                          # => 0.194975e4 (BigDecimal, nil when open)
 bill.formatted_amount                # => "1949.75"
 bill.currency                        # => "CHF"
@@ -50,9 +50,9 @@ bill.reference_type                  # => :qrr (:qrr, :scor or :non)
 bill.reference                       # => "210000000003139471430009017"
 bill.formatted_reference             # => "21 00000 00003 13947 14300 09017"
 bill.unstructured_message            # => "Order from 15.10.2020"
-bill.bill_information&.invoice_number      # => "1234"
-bill.bill_information&.invoice_date        # => Date.new(2020, 10, 21)
-bill.bill_information&.payment_conditions  # => [#<data PaymentCondition discount=0.0, days=30>]
+bill.billing_information&.invoice_number      # => "1234"
+bill.billing_information&.invoice_date        # => Date.new(2020, 10, 21)
+bill.billing_information&.payment_conditions  # => [#<data PaymentCondition discount=0.0, days=30>]
 bill.alternative_procedures          # => ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"]
 bill.warnings                        # => [] (e.g. legacy address type "K")
 bill.to_h                            # Ruby types (BigDecimal, Date, Symbol), nested hashes
@@ -196,7 +196,7 @@ bill.warnings                              # problems that do not make the bill 
 - **`strict: false`** returns the bill with `errors` filled in. It still raises
   `InvalidPayload` when the text is not structurally a QR-bill: the QR type is
   not `SPC`, or there are fewer than 31 lines. `#bill` is `nil` then.
-- A **`SwissQr::Problem`** has a `field` symbol (`:account`, `:"creditor.name"`,
+- A **`SwissQr::Problem`** has a `field` symbol (`:iban`, `:"creditor.name"`,
   `:reference`, `:payload`, ...) and a `message`. `problem.about?(:creditor)`
   matches all creditor fields.
 - **Warnings** never make a bill invalid. Billing information and alternative
@@ -220,7 +220,7 @@ All three are immutable (`Data`) and support `#to_h`, `#as_json` and `==`.
 |---|---|---|
 | `version` | String | `"0200"` |
 | `coding_type` | String | `"1"` (UTF-8, Latin character set) |
-| `account` | String | IBAN or QR-IBAN, no spaces, upper case (`formatted_account` adds spaces) |
+| `iban` | String | IBAN or QR-IBAN, no spaces, upper case (`formatted_iban` adds spaces) |
 | `qr_iban` | Boolean | Also `qr_iban?`. QR-IID 30000–31999 |
 | `creditor` | Address | Required |
 | `ultimate_creditor` | Address, nil | Reserved by SIX. Must be empty, so always `nil` in a valid bill |
@@ -231,8 +231,8 @@ All three are immutable (`Data`) and support `#to_h`, `#as_json` and `==`.
 | `reference` | String, nil | As given. `formatted_reference` groups the digits |
 | `unstructured_message` | String, nil | Free text |
 | `trailer` | String | `"EPD"` |
-| `raw_bill_information` | String, nil | Billing information as given (line 32) |
-| `bill_information` | BillInformation, nil | The billing information parsed, when it uses the Swico S1 syntax (`//S1/...`) |
+| `raw_billing_information` | String, nil | Billing information as given (line 32) |
+| `billing_information` | BillingInformation, nil | The billing information parsed, when it uses the Swico S1 syntax (`//S1/...`) |
 | `alternative_procedures` | Array of String | At most 2 (e.g. `"eBill/B/..."`) |
 | `errors`, `warnings` | Array of Problem | `valid?` is `errors.empty?` |
 | `raw` | String | The payload as given (UTF-8) |
@@ -251,7 +251,7 @@ All three are immutable (`Data`) and support `#to_h`, `#as_json` and `==`.
 `#lines` gives the postal lines for display. `#to_s` joins them with line
 breaks.
 
-### `SwissQr::BillInformation` (Swico S1)
+### `SwissQr::BillingInformation` (Swico S1)
 
 | Field | S1 tag | Type |
 |---|---|---|
@@ -266,7 +266,7 @@ breaks.
 | `unknown_tags` | other tags | Hash |
 | `warnings`, `raw` | | |
 
-`SwissQr::BillInformation.parse("//S1/10/10201409/11/190512/32/7.7/40/2:10;0:30")`
+`SwissQr::BillingInformation.parse("//S1/10/10201409/11/190512/32/7.7/40/2:10;0:30")`
 parses a string directly.
 
 ### Helpers
@@ -309,7 +309,7 @@ $ swiss_qr invoice.pdf scan.png        # all QR-bills in the files, as a JSON ar
   {
     "file": "invoice.pdf",
     "version": "0200",
-    "account": "CH4431999123000889012",
+    "iban": "CH4431999123000889012",
     "amount": "1949.75",
     ...
   }

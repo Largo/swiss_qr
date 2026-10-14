@@ -24,11 +24,11 @@ shows the expected `Bill#to_h` with these conventions:
   FOR PAYMENT" notifications require it (IG §4.4).
 - Symbols become strings: `reference_type` is `"qrr" | "scor" | "non"` and
   address `type` is `"structured" | "combined"`.
-- `account` is normalised (no spaces, upper case). `reference` is kept exactly
+- `iban` is normalised (no spaces, upper case). `reference` is kept exactly
   as given, including the lower-case `scor_lowercase` fixture.
 - `ultimate_creditor` is always `null` in valid fixtures. `raw` is not listed,
   because it is the `.txt` itself.
-- `swico` is `null` unless `bill_information` starts with `//S1/`. Its shape:
+- `swico` is `null` unless `billing_information` starts with `//S1/`. Its shape:
   - Missing tags are `null`.
   - Dates are ISO `YYYY-MM-DD`.
   - `vat_dates` holds one or two dates, from `/31/`.
@@ -56,11 +56,11 @@ under `strict: true`. The `.reason` file is one line in this format:
   have one of these fields, or be nested under one: `creditor` matches
   `creditor.name`. The field names used are:
   - `header`, `version`, `coding_type`
-  - `account`
+  - `iban`
   - `creditor.<attr>`, `ultimate_creditor`, `debtor.<attr>`
   - `amount`, `currency`
   - `reference_type`, `reference`
-  - `unstructured_message`, `bill_information`, `alternative_procedures`
+  - `unstructured_message`, `billing_information`, `alternative_procedures`
   - `trailer`
   - `payload`, for size, line count, character set or separators as a whole
 - `[fatal]` marks payloads that are not structurally a QR-bill: the QR type is
@@ -72,7 +72,7 @@ under `strict: true`. The `.reason` file is one line in this format:
 ## payloads/swico/NAME.txt and NAME.json
 
 A bare "Billing information" line. The `.json` is the expected
-`SwissQr::BillInformation#to_h`, with the same conventions as `swico` above.
+`SwissQr::BillingInformation#to_h`, with the same conventions as `swico` above.
 
 ## images/
 

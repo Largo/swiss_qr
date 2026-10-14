@@ -2,7 +2,7 @@
   "_source": "SIX Style Guide QR-bill p. 20",
   "version": "0200",
   "coding_type": "1",
-  "account": "CH5800791123000889012",
+  "iban": "CH5800791123000889012",
   "qr_iban": false,
   "creditor": {
     "type": "structured",
@@ -33,8 +33,8 @@
   "reference": "RF18539007547034",
   "unstructured_message": null,
   "trailer": "EPD",
-  "raw_bill_information": null,
-  "bill_information": null,
+  "raw_billing_information": null,
+  "billing_information": null,
   "alternative_procedures": [
     "Name AV1: UV;UltraPay005;12345",
     "Name AV2: XY;XYService;54321"

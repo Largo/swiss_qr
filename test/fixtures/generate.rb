@@ -20,7 +20,7 @@
 #   payloads/invalid/NAME.txt   raw payload that must not validate
 #   payloads/invalid/NAME.reason  one line: "[fatal] field[|field]: explanation"
 #   payloads/swico/NAME.txt     a "Billing information" line (Swico/SIX S1)
-#   payloads/swico/NAME.json    expected SwissQr::BillInformation#to_h
+#   payloads/swico/NAME.json    expected SwissQr::BillingInformation#to_h
 #   images/*.png, images/*.pdf  QR codes rendered with rqrcode (ECC level M),
 #                               each verified by decoding it with QrReader
 #   images/expected.json        image file => payload fixture names it contains
@@ -195,13 +195,13 @@ module FixtureGen
     end
   end
 
-  # spec keys: account, creditor, ultimate_creditor, amount, currency, debtor,
-  # reference_type, reference, message, bill_information,
+  # spec keys: iban, creditor, ultimate_creditor, amount, currency, debtor,
+  # reference_type, reference, message, billing_information,
   # alternative_procedures, eol, final_eol, trailing_blank_lines,
   # qr_type, version, coding_type, trailer, mutate (lambda on the line array)
   def self.lines(spec)
     lines = [spec.fetch(:qr_type, "SPC"), spec.fetch(:version, "0200"), spec.fetch(:coding_type, "1"),
-             spec.fetch(:account),
+             spec.fetch(:iban),
              *address_lines(spec.fetch(:creditor)),
              *address_lines(spec[:ultimate_creditor]),
              spec[:amount].to_s, spec.fetch(:currency, "CHF"),
@@ -209,8 +209,8 @@ module FixtureGen
              spec.fetch(:reference_type), spec[:reference].to_s, spec[:message].to_s,
              spec.fetch(:trailer, "EPD")]
     avs = spec.fetch(:alternative_procedures, [])
-    if avs.any? || spec.key?(:bill_information)
-      lines << spec[:bill_information].to_s
+    if avs.any? || spec.key?(:billing_information)
+      lines << spec[:billing_information].to_s
       lines.concat(avs)
     end
     spec[:mutate] ? spec[:mutate].call(lines) : lines
@@ -251,7 +251,7 @@ module FixtureGen
   end
 
   def self.swico_json(spec)
-    info = spec[:bill_information]
+    info = spec[:billing_information]
     return nil unless info&.start_with?("//S1/")
 
     entry = SWICO.values.find { |raw, _| raw == info } or raise "no expected Swico data for #{info.inspect}"
@@ -267,14 +267,14 @@ module FixtureGen
   end
 
   def self.expected(spec, source: nil)
-    account = spec.fetch(:account).delete(" ").upcase
+    account = spec.fetch(:iban).delete(" ").upcase
     warnings = Array(spec[:warnings]).map { |f| { "field" => f } }
     {
       **(source ? { "_source" => source } : {}),
       **(spec[:note] ? { "_note" => spec[:note] } : {}),
       "version" => spec.fetch(:version, "0200"),
       "coding_type" => spec.fetch(:coding_type, "1"),
-      "account" => account,
+      "iban" => account,
       "qr_iban" => CD.qr_iban?(account),
       "creditor" => address_json(spec[:creditor]),
       "ultimate_creditor" => nil,
@@ -285,8 +285,8 @@ module FixtureGen
       "reference" => blank_to_nil(spec[:reference]),
       "unstructured_message" => blank_to_nil(spec[:message]),
       "trailer" => "EPD",
-      "raw_bill_information" => blank_to_nil(spec[:bill_information]),
-      "bill_information" => swico_json(spec),
+      "raw_billing_information" => blank_to_nil(spec[:billing_information]),
+      "billing_information" => swico_json(spec),
       "alternative_procedures" => spec.fetch(:alternative_procedures, []),
       "errors" => [],
       "warnings" => warnings
@@ -297,7 +297,7 @@ module FixtureGen
   # silently produce a "valid" fixture that is not.
   def self.assert_valid!(name, spec)
     payload = build(spec)
-    account = spec[:account]
+    account = spec[:iban]
     fail_with = ->(msg) { raise "valid fixture #{name}: #{msg}" }
     fail_with.call("IBAN check digits") unless CD.iban_valid?(account)
     fail_with.call("not CH/LI") unless %w[CH LI].include?(account[0, 2]) && account.size == 21
@@ -318,7 +318,7 @@ module FixtureGen
       fail_with.call("amount format #{amount}")
     end
     fail_with.call("currency") unless %w[CHF EUR].include?(spec.fetch(:currency, "CHF"))
-    fail_with.call("message+billing > 140") if spec[:message].to_s.size + spec[:bill_information].to_s.size > 140
+    fail_with.call("message+billing > 140") if spec[:message].to_s.size + spec[:billing_information].to_s.size > 140
     fail_with.call("> 2 alternative procedures") if spec.fetch(:alternative_procedures, []).size > 2
     if spec.fetch(:alternative_procedures, []).any? { |a| a.size > 100 } && !Array(spec[:warnings]).include?("alternative_procedures")
       fail_with.call("alternative procedure > 100")
@@ -343,101 +343,101 @@ module FixtureGen
   # Each entry: name, field spec, verbatim payload as decoded, source note.
   OFFICIAL = [
     ["six_ig_ex1_qrr",
-     { account: "CH6431961000004421557", creditor: MUSTER_SOEHNE, amount: "50.00", debtor: SIMON_MUSTER,
+     { iban: "CH6431961000004421557", creditor: MUSTER_SOEHNE, amount: "50.00", debtor: SIMON_MUSTER,
        reference_type: "QRR", reference: "000008207791225857421286694", message: "Payment of travel",
        eol: CRLF, final_eol: true },
      "SIX IG QR-bill v2.4 (2026-02-24) Annex A example 1, QR code on p. 50; identical in style guide pp. 14/25"],
     ["six_ig_ex2_qrr_swico_two_alt_procedures",
-     { account: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER,
+     { iban: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER,
        reference_type: "QRR", reference: "210000000003139471430009017", message: "Order from 15.10.2020",
-       bill_information: SWICO[:ig_example2][0],
+       billing_information: SWICO[:ig_example2][0],
        alternative_procedures: ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"], eol: CRLF },
      "SIX IG QR-bill v2.4 Annex A example 2, QR code on p. 52"],
     ["six_ig_ex3_non_no_amount_no_debtor",
-     { account: "CH5204835012345671000",
+     { iban: "CH5204835012345671000",
        creditor: s_addr("Sample Foundation", "PO Box", "", "3001", "Bern", "CH"),
        reference_type: "NON", eol: LF, final_eol: true },
      "SIX IG QR-bill v2.4 Annex A example 3, QR code on p. 53 (the table beside it differs: " \
      "'Muster Stiftung (sample foundation)', 'P.O. box')"],
     ["six_ig_ex4_scor",
-     { account: "CH5800791123000889012",
+     { iban: "CH5800791123000889012",
        creditor: s_addr("Muster Krankenkasse", "Musterstrasse", "12", "8000", "Seldwyla", "CH"),
        amount: "211.00", debtor: SARAH_BEISPIEL, reference_type: "SCOR", reference: "RF240191230100405JSH0438",
        eol: LF, final_eol: true },
      "SIX IG QR-bill v2.4 Annex A example 4, QR code on p. 55 (the printed table/payment part show " \
      "RF72..., which has wrong check digits; see invalid/six_ig_ex4_table_scor_typo)"],
     ["six_ig_ex5_creditor_li",
-     { account: "CH5800791123000889012",
+     { iban: "CH5800791123000889012",
        creditor: s_addr("Max Muster & Söhne", "Musterstrasse", "123", "9490", "Vaduz", "LI"),
        amount: "199.95", debtor: SARAH_BEISPIEL, reference_type: "SCOR", reference: "RF18539007547034",
        eol: LF, final_eol: true },
      "SIX IG QR-bill v2.4 Annex A example 5, QR code on p. 56"],
     ["six_ig_ex6_debtor_de",
-     { account: "CH5800791123000889012", creditor: MUSTER_SOEHNE, amount: "199.95",
+     { iban: "CH5800791123000889012", creditor: MUSTER_SOEHNE, amount: "199.95",
        debtor: s_addr("Sarah Beispiel", "Musterstrasse", "1", "78462", "Konstanz", "DE"),
        reference_type: "SCOR", reference: "RF18539007547034", eol: LF, final_eol: true },
      "SIX IG QR-bill v2.4 Annex A example 6, QR code on p. 58"],
     ["six_ig_notification_do_not_use",
-     { account: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "0.00", debtor: SIMON_MUSTER,
+     { iban: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "0.00", debtor: SIMON_MUSTER,
        reference_type: "QRR", reference: "210000000003139471430009017", message: "DO NOT USE FOR PAYMENT",
        eol: LF, final_eol: true },
      "SIX IG QR-bill v2.4 ch. 4.4 'DO NOT USE FOR PAYMENT' (amount 0.00 is required there), QR code on p. 42"],
     ["six_ig_non_with_amount",
-     { account: "CH5204835012345671000", creditor: MUSTER_SOEHNE, amount: "420.00",
+     { iban: "CH5204835012345671000", creditor: MUSTER_SOEHNE, amount: "420.00",
        debtor: s_addr("Barbara Beispiel", "Musterstrasse", "1", "8000", "Seldwyla", "CH"),
        reference_type: "NON", eol: CRLF },
      "SIX IG QR-bill v2.4 figures 3 and 14, QR codes on pp. 15 and 48"],
     ["six_ig_fig1_qrr_full_swico",
-     { account: "CH4431999123000889012",
+     { iban: "CH4431999123000889012",
        creditor: s_addr("Robert Schneider AG", "Rue du Lac", "1268", "2501", "Biel", "CH"),
        amount: "1949.75", debtor: RUTSCHMANN, reference_type: "QRR", reference: "210000000003139471430009017",
-       message: "Auftrag vom 15.06.2020", bill_information: SWICO[:ig_figure1][0],
+       message: "Auftrag vom 15.06.2020", billing_information: SWICO[:ig_figure1][0],
        alternative_procedures: ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"], eol: LF },
      "SIX IG QR-bill v2.4 figure 1, QR code on p. 11"],
     ["six_ig_online_non_message",
-     { account: "CH5204835012345671000", creditor: MUSTER_SOEHNE, amount: "50.00", debtor: SARAH_BEISPIEL,
+     { iban: "CH5204835012345671000", creditor: MUSTER_SOEHNE, amount: "50.00", debtor: SARAH_BEISPIEL,
        reference_type: "NON", message: "payment of the trip", eol: CRLF },
      "SIX IG QR-bill v2.4 ch. 3.8.4 figure 10 (online display), QR code on p. 29"],
     ["six_ap_ebill",
-     { account: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER,
+     { iban: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER,
        reference_type: "QRR", reference: "210000000003139471430009017", message: "Auftrag vom 15.10.2020",
-       bill_information: SWICO[:ig_example2][0], alternative_procedures: ["eBill/B/simon.muster@example.com"],
+       billing_information: SWICO[:ig_example2][0], alternative_procedures: ["eBill/B/simon.muster@example.com"],
        eol: CRLF },
      "SIX 'Alternative procedures' document (EN), figure 1, QR code on p. 11"],
     ["six_sg_qrr_empty_billing_two_alt_procedures",
-     { account: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "2500.25", debtor: SIMON_MUSTER_SP,
-       reference_type: "QRR", reference: "210000000003139471430009017", bill_information: "",
+     { iban: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "2500.25", debtor: SIMON_MUSTER_SP,
+       reference_type: "QRR", reference: "210000000003139471430009017", billing_information: "",
        alternative_procedures: ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"], eol: CRLF },
      "SIX Style Guide QR-bill (2026-01) pp. 9/13/16/18/26/27/29 and introduction script p. 7 " \
      "(debtor street has a trailing blank)"],
     ["six_sg_qrr_swico",
-     { account: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER_SP,
+     { iban: "CH4431999123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER_SP,
        reference_type: "QRR", reference: "210000000003139471430009017", message: "Auftrag vom 15.06.2020",
-       bill_information: SWICO[:style_guide][0],
+       billing_information: SWICO[:style_guide][0],
        alternative_procedures: ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"], eol: CRLF },
      "SIX Style Guide QR-bill pp. 15/19; introduction script pp. 5/10/12/16"],
     ["six_sg_scor_two_alt_procedures",
-     { account: "CH5800791123000889012", creditor: MUSTER_SOEHNE, amount: "2500.25", debtor: SIMON_MUSTER_SP,
-       reference_type: "SCOR", reference: "RF18539007547034", bill_information: "",
+     { iban: "CH5800791123000889012", creditor: MUSTER_SOEHNE, amount: "2500.25", debtor: SIMON_MUSTER_SP,
+       reference_type: "SCOR", reference: "RF18539007547034", billing_information: "",
        alternative_procedures: ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"], eol: CRLF },
      "SIX Style Guide QR-bill p. 20"],
     ["six_sg_scor_swico",
-     { account: "CH5800791123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER_SP,
-       reference_type: "SCOR", reference: "RF18539007547034", bill_information: SWICO[:style_guide_vat_date][0],
+     { iban: "CH5800791123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER_SP,
+       reference_type: "SCOR", reference: "RF18539007547034", billing_information: SWICO[:style_guide_vat_date][0],
        alternative_procedures: ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"], eol: CRLF },
      "SIX Style Guide QR-bill pp. 21/28; introduction script p. 13"],
     ["six_sg_non_swico",
-     { account: "CH5800791123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER_SP,
-       reference_type: "NON", message: "Auftrag vom 15.06.2020", bill_information: SWICO[:style_guide_vat_date][0],
+     { iban: "CH5800791123000889012", creditor: MUSTER_SOEHNE, amount: "1949.75", debtor: SIMON_MUSTER_SP,
+       reference_type: "NON", message: "Auftrag vom 15.06.2020", billing_information: SWICO[:style_guide_vat_date][0],
        alternative_procedures: ["Name AV1: UV;UltraPay005;12345", "Name AV2: XY;XYService;54321"], eol: CRLF },
      "SIX Style Guide QR-bill p. 22; introduction script pp. 7/14"],
     ["six_sg_donation_en",
-     { account: "CH5204835012345671000",
+     { iban: "CH5204835012345671000",
        creditor: s_addr("Better World Trust", "P.O. Box", "", "3001", "Bern", "CH"),
        reference_type: "NON", eol: LF },
      "SIX Style Guide QR-bill p. 23; introduction script pp. 11/17/20"],
     ["six_intro_donation_de",
-     { account: "CH5204835012345671000",
+     { iban: "CH5204835012345671000",
        creditor: s_addr("Stiftung Bessere Welt", "Postfach", "", "3001", "Bern", "CH"),
        reference_type: "NON", eol: LF },
      "SIX introduction script for invoice issuers/recipients (EN) pp. 18/19"]
@@ -471,119 +471,119 @@ module FixtureGen
 
   VALID = {
     "qriban_qrr_lf" =>
-      { account: QRIBAN_CH, creditor: ELEKTRO, amount: "1234.50", debtor: RUTSCHMANN,
+      { iban: QRIBAN_CH, creditor: ELEKTRO, amount: "1234.50", debtor: RUTSCHMANN,
         reference_type: "QRR", reference: QRR1, message: "Rechnung 2026-1014", eol: LF },
     "qriban_qrr_crlf_final_newline_no_amount" =>
-      { account: QRIBAN_CH2, creditor: ELEKTRO, debtor: RUTSCHMANN,
+      { iban: QRIBAN_CH2, creditor: ELEKTRO, debtor: RUTSCHMANN,
         reference_type: "QRR", reference: QRR2, eol: CRLF, final_eol: true },
     "iban_scor_eur" =>
-      { account: IBAN_CH, creditor: VERLAG, amount: "870.00", currency: "EUR", debtor: LOERRACH,
+      { iban: IBAN_CH, creditor: VERLAG, amount: "870.00", currency: "EUR", debtor: LOERRACH,
         reference_type: "SCOR", reference: SCOR1, eol: CRLF },
     "iban_non_message_lf" =>
-      { account: IBAN_CH2, creditor: VEREIN, amount: "120.00", debtor: RUTSCHMANN,
+      { iban: IBAN_CH2, creditor: VEREIN, amount: "120.00", debtor: RUTSCHMANN,
         reference_type: "NON", message: "Mitgliederbeitrag 2027", eol: LF },
     "iban_non_eur_minimal" =>
-      { account: IBAN_CH, creditor: VERLAG, currency: "EUR", reference_type: "NON", eol: CRLF },
+      { iban: IBAN_CH, creditor: VERLAG, currency: "EUR", reference_type: "NON", eol: CRLF },
     "iban_non_no_debtor_with_amount" =>
-      { account: IBAN_CH2, creditor: VEREIN, amount: "35.00", reference_type: "NON",
+      { iban: IBAN_CH2, creditor: VEREIN, amount: "35.00", reference_type: "NON",
         message: "Spende Jugendlager", eol: LF, final_eol: true },
     "li_iban_scor" =>
-      { account: IBAN_LI, creditor: VADUZ, amount: "4500.00", debtor: SARAH_BEISPIEL,
+      { iban: IBAN_LI, creditor: VADUZ, amount: "4500.00", debtor: SARAH_BEISPIEL,
         reference_type: "SCOR", reference: SCOR2, eol: CRLF },
     "li_qriban_qrr" =>
-      { account: QRIBAN_LI, creditor: VADUZ, amount: "99.90", debtor: SIMON_MUSTER,
+      { iban: QRIBAN_LI, creditor: VADUZ, amount: "99.90", debtor: SIMON_MUSTER,
         reference_type: "QRR", reference: QRR3, eol: LF },
     "swico_annex_d_ex1_qrr" =>
-      { account: QRIBAN_CH, creditor: ELEKTRO, amount: "3949.75", debtor: RUTSCHMANN,
-        reference_type: "QRR", reference: QRR1, bill_information: SWICO[:annex_d_example1][0], eol: CRLF },
+      { iban: QRIBAN_CH, creditor: ELEKTRO, amount: "3949.75", debtor: RUTSCHMANN,
+        reference_type: "QRR", reference: QRR1, billing_information: SWICO[:annex_d_example1][0], eol: CRLF },
     "swico_annex_d_ex2_scor" =>
-      { account: IBAN_CH, creditor: VERLAG, amount: "1025.00", debtor: RUTSCHMANN,
+      { iban: IBAN_CH, creditor: VERLAG, amount: "1025.00", debtor: RUTSCHMANN,
         reference_type: "SCOR", reference: SCOR1, message: "Hotel, 26.-27.02.2018",
-        bill_information: SWICO[:annex_d_example2][0], eol: LF },
+        billing_information: SWICO[:annex_d_example2][0], eol: LF },
     "swico_annex_d_ex3_non" =>
-      { account: IBAN_CH2, creditor: VERLAG, amount: "68.65", debtor: SARAH_BEISPIEL,
-        reference_type: "NON", message: "Import", bill_information: SWICO[:annex_d_example3][0], eol: CRLF },
+      { iban: IBAN_CH2, creditor: VERLAG, amount: "68.65", debtor: SARAH_BEISPIEL,
+        reference_type: "NON", message: "Import", billing_information: SWICO[:annex_d_example3][0], eol: CRLF },
     "swico_annex_d_ex4_escaped_slash" =>
-      { account: QRIBAN_CH, creditor: ELEKTRO, amount: "120.15", debtor: SIMON_MUSTER,
-        reference_type: "QRR", reference: QRR2, bill_information: SWICO[:annex_d_example4][0], eol: LF },
+      { iban: QRIBAN_CH, creditor: ELEKTRO, amount: "120.15", debtor: SIMON_MUSTER,
+        reference_type: "QRR", reference: QRR2, billing_information: SWICO[:annex_d_example4][0], eol: LF },
     "swico_all_tags_escaped_backslash" =>
-      { account: IBAN_CH, creditor: VERLAG, amount: "171.90", debtor: RUTSCHMANN,
-        reference_type: "SCOR", reference: SCOR1, bill_information: SWICO[:all_tags_escaped][0], eol: CRLF },
+      { iban: IBAN_CH, creditor: VERLAG, amount: "171.90", debtor: RUTSCHMANN,
+        reference_type: "SCOR", reference: SCOR1, billing_information: SWICO[:all_tags_escaped][0], eol: CRLF },
     "billing_info_not_swico" =>
-      { account: IBAN_CH, creditor: VERLAG, amount: "10.00", reference_type: "NON",
-        bill_information: "//XY/V1/order=4711/branch=7", eol: LF },
+      { iban: IBAN_CH, creditor: VERLAG, amount: "10.00", reference_type: "NON",
+        billing_information: "//XY/V1/order=4711/branch=7", eol: LF },
     "alt_procedure_one_ebill" =>
-      { account: QRIBAN_CH, creditor: ELEKTRO, amount: "250.00", debtor: SIMON_MUSTER,
-        reference_type: "QRR", reference: QRR1, bill_information: "",
+      { iban: QRIBAN_CH, creditor: ELEKTRO, amount: "250.00", debtor: SIMON_MUSTER,
+        reference_type: "QRR", reference: QRR1, billing_information: "",
         alternative_procedures: ["eBill/B/simon.muster@example.com"], eol: CRLF },
     "alt_procedures_two_with_swico" =>
-      { account: IBAN_CH, creditor: VERLAG, amount: "48.00", debtor: SIMON_MUSTER,
+      { iban: IBAN_CH, creditor: VERLAG, amount: "48.00", debtor: SIMON_MUSTER,
         reference_type: "SCOR", reference: SCOR1, message: "Abo 2027",
-        bill_information: SWICO[:minimal][0],
+        billing_information: SWICO[:minimal][0],
         alternative_procedures: ["eBill/B/41010560425610173", "XY;XYService;54321"], eol: LF },
     "trailing_empty_lines_crlf" =>
-      { account: IBAN_CH2, creditor: VEREIN, amount: "20.00", reference_type: "NON",
+      { iban: IBAN_CH2, creditor: VEREIN, amount: "20.00", reference_type: "NON",
         eol: CRLF, trailing_blank_lines: 2 },
     "trailing_empty_lines_after_alt_procedure_lf" =>
-      { account: IBAN_CH2, creditor: VEREIN, amount: "20.00", reference_type: "NON", bill_information: "",
+      { iban: IBAN_CH2, creditor: VEREIN, amount: "20.00", reference_type: "NON", billing_information: "",
         alternative_procedures: ["eBill/B/info@example.org"], eol: LF, trailing_blank_lines: 3 },
     "trailing_empty_billing_line_crlf" =>
-      { account: IBAN_CH, creditor: VERLAG, amount: "15.00", reference_type: "NON",
-        bill_information: "", eol: CRLF },
+      { iban: IBAN_CH, creditor: VERLAG, amount: "15.00", reference_type: "NON",
+        billing_information: "", eol: CRLF },
     "combined_address_k_legacy" =>
-      { account: QRIBAN_CH, creditor: k_addr("Elektro Muster AG", "Bahnhofstrasse 17", "8001 Zürich", "CH"),
+      { iban: QRIBAN_CH, creditor: k_addr("Elektro Muster AG", "Bahnhofstrasse 17", "8001 Zürich", "CH"),
         amount: "777.70", debtor: k_addr("Pia-Maria Rutschmann-Schnyder", "Grosse Marktgasse 28", "9400 Rorschach", "CH"),
         reference_type: "QRR", reference: QRR1, message: "Address type K (removed in IG 2.3)", eol: CRLF,
         warnings: %w[creditor.type debtor.type] },
     "combined_address_k_debtor_only" =>
-      { account: IBAN_CH, creditor: VERLAG, amount: "12.00",
+      { iban: IBAN_CH, creditor: VERLAG, amount: "12.00",
         debtor: k_addr("Anna Schmid", "Hauptstrasse 42", "D-79539 Lörrach", "DE"),
         reference_type: "NON", eol: LF, warnings: %w[debtor.type] },
     "max_lengths" =>
-      { account: IBAN_CH,
+      { iban: IBAN_CH,
         creditor: s_addr(max_len("Creditor Name ", 70), max_len("Long Street ", 70), max_len("B", 16),
                          max_len("9", 16), max_len("Town ", 35), "CH"),
         amount: "999999999.99",
         debtor: s_addr(max_len("Debtor Name ", 70), max_len("Debtor Street ", 70), max_len("7", 16),
                        max_len("8", 16), max_len("Village ", 35), "CH"),
         reference_type: "SCOR", reference: SCOR_MAX, message: max_len("Message ", 74),
-        bill_information: "//XY/#{"9" * 61}",
+        billing_information: "//XY/#{"9" * 61}",
         alternative_procedures: [max_len("AP1;", 100), max_len("AP2;", 100)], eol: LF },
     "min_amount_min_scor" =>
-      { account: IBAN_CH2, creditor: VEREIN, amount: "0.01", reference_type: "SCOR", reference: SCOR_MIN, eol: LF },
+      { iban: IBAN_CH2, creditor: VEREIN, amount: "0.01", reference_type: "SCOR", reference: SCOR_MIN, eol: LF },
     "unicode_charset" =>
-      { account: IBAN_CH, creditor: s_addr("Ștefan Țurcanu Söhne & Cie", "Rue de Genève", "4bis", "1003",
-                                           "Lausanne", "CH"),
+      { iban: IBAN_CH, creditor: s_addr("Ștefan Țurcanu Söhne & Cie", "Rue de Genève", "4bis", "1003",
+                                        "Lausanne", "CH"),
         amount: "64.20", debtor: s_addr("Łukasz Œuvre-Müller", "Ørstedgade", "3", "1001", "Fürstenau", "CH"),
         reference_type: "NON", message: "Café Crème & Brötli, Preis in € umgerechnet (½ Rabatt) ș ț",
         eol: CRLF },
     "street_with_building_number" =>
-      { account: IBAN_CH2, creditor: s_addr("Boulangerie Exemple Sàrl", "Rue du Marché 12", "", "1204", "Genève", "CH"),
+      { iban: IBAN_CH2, creditor: s_addr("Boulangerie Exemple Sàrl", "Rue du Marché 12", "", "1204", "Genève", "CH"),
         amount: "8.40", debtor: s_addr("Jean Exemple", "Chemin des Vignes 3a", nil, "1260", "Nyon", "CH"),
         reference_type: "NON", eol: LF },
     "debtor_without_street" =>
-      { account: IBAN_CH, creditor: VERLAG, amount: "19.90",
+      { iban: IBAN_CH, creditor: VERLAG, amount: "19.90",
         debtor: s_addr("Hans Muster", "", "", "3000", "Bern", "CH"), reference_type: "NON", eol: LF },
     "alt_procedure_too_long_warning" =>
-      { account: IBAN_CH, creditor: VERLAG, amount: "100.00", debtor: SIMON_MUSTER, reference_type: "NON",
-        bill_information: "", alternative_procedures: [max_len("AP1;", 101)], eol: LF,
+      { iban: IBAN_CH, creditor: VERLAG, amount: "100.00", debtor: SIMON_MUSTER, reference_type: "NON",
+        billing_information: "", alternative_procedures: [max_len("AP1;", 101)], eol: LF,
         warnings: %w[alternative_procedures],
         note: "status A line: IG 4.2.1 says errors there must not cause rejection, so a warning, not an error" },
     "scor_lowercase" =>
-      { account: IBAN_CH2, creditor: VEREIN, amount: "25.00", reference_type: "SCOR",
+      { iban: IBAN_CH2, creditor: VEREIN, amount: "25.00", reference_type: "SCOR",
         reference: SCOR1.downcase, eol: LF,
         note: "IG 4.2.2: banks do not distinguish upper/lower case in references; reference kept as given" },
     "qriban_qrr_eur" =>
-      { account: QRIBAN_CH, creditor: ELEKTRO, amount: "1500.00", currency: "EUR", debtor: LOERRACH,
+      { iban: QRIBAN_CH, creditor: ELEKTRO, amount: "1500.00", currency: "EUR", debtor: LOERRACH,
         reference_type: "QRR", reference: QRR2, eol: CRLF,
         note: "valid under IG 2.3 (in force); IG 2.4 (from 2026-11-14) restricts QR-IBAN/QRR to CHF" }
   }.freeze
 
   # --- invalid fixtures -------------------------------------------------------
 
-  BASE_QRR = { account: QRIBAN_CH, creditor: ELEKTRO, amount: "100.00", debtor: SIMON_MUSTER,
+  BASE_QRR = { iban: QRIBAN_CH, creditor: ELEKTRO, amount: "100.00", debtor: SIMON_MUSTER,
                reference_type: "QRR", reference: QRR1, eol: LF }.freeze
-  BASE_NON = { account: IBAN_CH, creditor: VERLAG, amount: "100.00", debtor: SIMON_MUSTER,
+  BASE_NON = { iban: IBAN_CH, creditor: VERLAG, amount: "100.00", debtor: SIMON_MUSTER,
                reference_type: "NON", eol: LF }.freeze
 
   def self.invalid
@@ -605,16 +605,16 @@ module FixtureGen
       "wrong_version_sub" => [BASE_QRR.merge(version: "0201"),
                               "version: only \"0200\" is permitted in master version 02 (got \"0201\")"],
       "wrong_coding_type" => [BASE_QRR.merge(coding_type: "2"), "coding_type: coding type must be \"1\" (got \"2\")"],
-      "iban_bad_checksum" => [BASE_NON.merge(account: IBAN_CH.sub(/\ACH\d\d/) do |m|
+      "iban_bad_checksum" => [BASE_NON.merge(iban: IBAN_CH.sub(/\ACH\d\d/) do |m|
         "CH%02d" % ((m[2, 2].to_i + 1) % 100)
       end),
-                              "account: IBAN check digits are wrong (mod 97 != 1)"],
-      "iban_too_short" => [BASE_NON.merge(account: IBAN_CH[0, 20]), "account: IBAN must be exactly 21 characters"],
-      "iban_not_ch_li" => [BASE_NON.merge(account: IBAN_LV),
-                           "account: only CH and LI IBANs are permitted (LV IBAN with valid check digits)"],
-      "iban_with_spaces" => [BASE_NON.merge(account: IBAN_CH.scan(/.{1,4}/).join(" ")),
-                             "account: IBAN must be given without spaces"],
-      "iban_empty" => [BASE_NON.merge(account: ""), "account: IBAN is mandatory"],
+                              "iban: IBAN check digits are wrong (mod 97 != 1)"],
+      "iban_too_short" => [BASE_NON.merge(iban: IBAN_CH[0, 20]), "iban: IBAN must be exactly 21 characters"],
+      "iban_not_ch_li" => [BASE_NON.merge(iban: IBAN_LV),
+                           "iban: only CH and LI IBANs are permitted (LV IBAN with valid check digits)"],
+      "iban_with_spaces" => [BASE_NON.merge(iban: IBAN_CH.scan(/.{1,4}/).join(" ")),
+                             "iban: IBAN must be given without spaces"],
+      "iban_empty" => [BASE_NON.merge(iban: ""), "iban: IBAN is mandatory"],
       "qriban_with_scor" => [BASE_QRR.merge(reference_type: "SCOR", reference: SCOR1),
                              "reference_type: a QR-IBAN requires reference type QRR (got SCOR)"],
       "qriban_with_non" => [BASE_QRR.merge(reference_type: "NON", reference: nil),
@@ -631,7 +631,7 @@ module FixtureGen
       "scor_bad_checksum" => [BASE_NON.merge(reference_type: "SCOR", reference: SCOR1.sub(/\ARF\d\d/, "RF00")),
                               "reference: creditor reference (ISO 11649) check digits are wrong"],
       "six_ig_ex4_table_scor_typo" => [
-        { account: "CH5800791123000889012",
+        { iban: "CH5800791123000889012",
           creditor: s_addr("Muster Krankenkasse", "Musterstrasse", "12", "8000", "Seldwyla", "CH"),
           amount: "211.00", debtor: SARAH_BEISPIEL, reference_type: "SCOR", reference: "RF720191230100405JSH0438",
           eol: CRLF },
@@ -685,22 +685,22 @@ module FixtureGen
       "message_too_long" => [BASE_NON.merge(message: max_len("Message ", 141)),
                              "unstructured_message: longer than 140 characters"],
       "message_plus_billing_too_long" => [
-        BASE_NON.merge(message: max_len("Invoice ", 90), bill_information: SWICO[:annex_d_example2][0][0, 51]),
-        "unstructured_message|bill_information: message (90) + billing information (51) exceed 140 characters together"
+        BASE_NON.merge(message: max_len("Invoice ", 90), billing_information: SWICO[:annex_d_example2][0][0, 51]),
+        "unstructured_message|billing_information: message (90) + billing information (51) exceed 140 characters together"
       ],
       "alt_procedures_three" => [
-        BASE_NON.merge(bill_information: "",
+        BASE_NON.merge(billing_information: "",
                        alternative_procedures: %w[eBill/B/a@example.com XY;XYService;1
                                                   ZZ;Third;3]),
         "alternative_procedures|payload: 3 alternative procedures (max 2), 35 lines"
       ],
-      "too_many_lines" => [BASE_NON.merge(bill_information: "", alternative_procedures: %w[A B],
+      "too_many_lines" => [BASE_NON.merge(billing_information: "", alternative_procedures: %w[A B],
                                           mutate: ->(l) { l + Array.new(6) { |i| "junk #{i}" } }),
                            "payload|alternative_procedures: 40 lines (max 34)"],
       "extra_line_in_creditor" => [BASE_NON.merge(mutate: ->(l) { l.insert(7, "c/o Muster") }),
                                    "trailer|payload: an extra line shifts all fields, line 31 is \"\" not \"EPD\""],
       "payload_too_long" => [
-        BASE_NON.merge(message: max_len("Lorem ipsum dolor sit amet ", 700), bill_information: "",
+        BASE_NON.merge(message: max_len("Lorem ipsum dolor sit amet ", 700), billing_information: "",
                        alternative_procedures: [max_len("AP1;", 100), max_len("AP2;", 100)]),
         "payload|unstructured_message: more than 997 characters (the 700-character message is also over 140)"
       ],

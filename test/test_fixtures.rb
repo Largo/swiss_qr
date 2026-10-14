@@ -43,7 +43,7 @@ class TestFixtures < Minitest::Test
   FixtureHelper.fixture_names("swico").each do |name|
     define_method(:"test_swico_#{name}") do
       text = payload("swico", name).chomp
-      info = SwissQr::BillInformation.parse(text)
+      info = SwissQr::BillingInformation.parse(text)
 
       assert_fixture_match expected_json("swico", name), info.as_json
       assert_empty info.warnings

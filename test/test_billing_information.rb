@@ -2,10 +2,10 @@
 
 require "test_helper"
 
-class TestBillInformation < Minitest::Test
-  BillInformation = SwissQr::BillInformation
+class TestBillingInformation < Minitest::Test
+  BillingInformation = SwissQr::BillingInformation
 
-  def parse(text) = BillInformation.parse(text)
+  def parse(text) = BillingInformation.parse(text)
 
   def test_full_example
     info = parse("//S1/10/10201409/11/190512/20/1400.000-53/30/106017086/31/180508/32/7.7/40/2:10;0:30")
@@ -15,7 +15,7 @@ class TestBillInformation < Minitest::Test
     assert_equal "1400.000-53", info.customer_reference
     assert_equal "106017086", info.vat_number
     assert_equal [Date.new(2018, 5, 8)], info.vat_dates
-    assert_equal [BillInformation::VatRate.new(rate: BigDecimal("7.7"), amount: nil)], info.vat_details
+    assert_equal [BillingInformation::VatRate.new(rate: BigDecimal("7.7"), amount: nil)], info.vat_details
     assert_nil info.vat_import_taxes
     assert_equal [BigDecimal(2), BigDecimal(0)], info.payment_conditions.map(&:discount)
     assert_equal [10, 30], info.payment_conditions.map(&:days)
@@ -63,7 +63,7 @@ class TestBillInformation < Minitest::Test
     info = parse("//S1/10/1/50/future")
 
     assert_equal({ "50" => "future" }, info.unknown_tags)
-    assert_problem info.warnings, :bill_information
+    assert_problem info.warnings, :billing_information
   end
 
   def test_order_and_duplicate_warnings
@@ -87,20 +87,20 @@ class TestBillInformation < Minitest::Test
     assert_nil info.vat_import_taxes
     assert_nil info.payment_conditions
     assert_equal 6, info.warnings.size
-    assert(info.warnings.all? { |w| w.field == :bill_information })
+    assert(info.warnings.all? { |w| w.field == :billing_information })
   end
 
   def test_non_tag_token_warns
     info = parse("//S1/abc/1")
 
-    assert_problem info.warnings, :bill_information
+    assert_problem info.warnings, :billing_information
   end
 
   def test_prefix_required
     assert_raises(ArgumentError) { parse("//XY/whatever") }
-    assert BillInformation.s1?("//S1/10/1")
-    refute BillInformation.s1?("//S2/10/1")
-    refute BillInformation.s1?(nil)
+    assert BillingInformation.s1?("//S1/10/1")
+    refute BillingInformation.s1?("//S2/10/1")
+    refute BillingInformation.s1?(nil)
   end
 
   def test_value_object
@@ -129,19 +129,19 @@ class TestBillInformation < Minitest::Test
     bill = SwissQr.parse(text)
 
     assert_predicate bill, :valid?
-    assert_problem bill.warnings, :bill_information
-    assert_nil bill.bill_information.invoice_date
+    assert_problem bill.warnings, :billing_information
+    assert_nil bill.billing_information.invoice_date
   end
 
   def test_bill_with_non_s1_billing_information
     bill = SwissQr.parse(build_payload({}, extra: ["//XY/V1/order=4711"]))
 
-    assert_equal "//XY/V1/order=4711", bill.raw_bill_information
-    assert_nil bill.bill_information
+    assert_equal "//XY/V1/order=4711", bill.raw_billing_information
+    assert_nil bill.billing_information
     assert_empty bill.warnings
 
     bill = SwissQr.parse(build_payload({}, extra: ["free text"]))
 
-    assert_problem bill.warnings, :bill_information
+    assert_problem bill.warnings, :billing_information
   end
 end

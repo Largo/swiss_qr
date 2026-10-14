@@ -7,7 +7,7 @@ require_relative "swiss_qr/iban"
 require_relative "swiss_qr/countries"
 require_relative "swiss_qr/reference"
 require_relative "swiss_qr/address"
-require_relative "swiss_qr/bill_information"
+require_relative "swiss_qr/billing_information"
 require_relative "swiss_qr/bill"
 require_relative "swiss_qr/validation"
 require_relative "swiss_qr/parser"
@@ -19,10 +19,10 @@ require_relative "swiss_qr/reader"
 # coding type "1", trailer "EPD").
 #
 #   bill = SwissQr.parse(payload)
-#   bill.account          # => "CH4431999123000889012"
+#   bill.iban          # => "CH4431999123000889012"
 #   bill.amount           # => 0.194975e4 (BigDecimal)
 #   bill.creditor.name    # => "Max Muster & Söhne"
-#   bill.bill_information&.invoice_number
+#   bill.billing_information&.invoice_number
 #
 #   SwissQr.read("invoice.pdf")      # first QR-bill in an image or PDF (needs a reader,
 #                                    # by default the qr_reader gem)

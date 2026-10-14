@@ -2,7 +2,7 @@
   "_source": "hand-built (generate.rb)",
   "version": "0200",
   "coding_type": "1",
-  "account": "LI20301230000ABCD1234",
+  "iban": "LI20301230000ABCD1234",
   "qr_iban": true,
   "creditor": {
     "type": "structured",
@@ -33,8 +33,8 @@
   "reference": "300000000000001234567890126",
   "unstructured_message": null,
   "trailer": "EPD",
-  "raw_bill_information": null,
-  "bill_information": null,
+  "raw_billing_information": null,
+  "billing_information": null,
   "alternative_procedures": [],
   "errors": [],
   "warnings": []
