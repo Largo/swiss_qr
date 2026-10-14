@@ -8,10 +8,11 @@ Gem::Specification.new do |spec|
   spec.authors = ["Andi Idogawa"]
   spec.email = ["web@idogawa.com"]
 
-  spec.summary = "Parse and validate Swiss QR-bill (QR-Rechnung) payloads"
+  spec.summary = "Parse and validate Swiss QR-bill payloads (QR-Rechnung, QR-facture, QR-fattura)"
   spec.description = <<~DESC.tr("\n", " ").strip
-    Parses the payload of a Swiss QR Code on a Swiss QR-bill (SIX Swiss Implementation
-    Guidelines for the QR-bill, "SPC"/"0200") into immutable value objects: account and
+    Parses the payload of the Swiss QR Code on a Swiss QR-bill (QR-Rechnung, QR-facture,
+    QR-fattura; Switzerland and Liechtenstein) per the SIX Swiss Implementation
+    Guidelines for the QR-bill ("SPC"/"0200") into immutable value objects: account and
     QR-IBAN, creditor and debtor addresses, amount, currency, QR/creditor reference,
     message, Swico S1 billing information and alternative procedures. Validates every
     rule of the guidelines, including IBAN, QR reference and ISO 11649 check digits.
