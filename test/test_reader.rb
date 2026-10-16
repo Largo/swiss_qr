@@ -98,8 +98,8 @@ class TestReader < Minitest::Test
     assert_raises(QrReaderHelper.qr_reader::ImageError) { SwissQr.read(StringIO.new(truncated)) }
   end
 
-  # qr_reader 0.0.2 raises UnsupportedImageError for such a PDF; the default
-  # adapter turns that into "no codes".
+  # A PDF without any image or code has no codes (qr_reader 0.0.2 raised
+  # UnsupportedImageError for it; 0.0.3 is the minimum).
   def test_pdf_without_any_image_or_code
     pdf = TestReader.text_only_pdf
     assert_nil SwissQr.read(StringIO.new(pdf))
@@ -309,6 +309,27 @@ class TestReader < Minitest::Test
     out, err, status = run_ruby(script, File.join(FIXTURES, "valid", "six_ig_ex1_qrr.txt"), image("six_ig_ex1_qrr.png"))
     assert status.success?, err
     assert_equal "ok\n", out
+  end
+
+  def test_qr_reader_older_than_the_minimum_is_refused
+    Dir.mktmpdir do |shadow|
+      # Shadows the installed gem with a qr_reader that reports version 0.0.2.
+      File.write(File.join(shadow, "qr_reader.rb"),
+                 'module QrReader; VERSION = "0.0.2"; def self.decode_all(*) = []; end')
+      script = <<~RUBY
+        $LOAD_PATH.unshift(ARGV.shift)
+        require "swiss_qr"
+        begin
+          SwissQr.read(ARGV[0])
+          abort "no ReaderUnavailable"
+        rescue SwissQr::ReaderUnavailable => e
+          puts e.message
+        end
+      RUBY
+      out, err, status = run_ruby(script, shadow, image("six_ig_ex1_qrr.png"))
+      assert status.success?, err
+      assert_match(/qr_reader 0\.0\.2 is too old: swiss_qr needs qr_reader 0\.0\.3 or newer/, out)
+    end
   end
 
   def test_reader_unavailable_without_qr_reader

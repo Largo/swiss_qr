@@ -66,9 +66,9 @@ $LOAD_PATH.unshift "/gems/bigdecimal-pure/lib", "/gems/swiss_qr/lib", "/gems/qr_
 require "swiss_qr"   # its require "bigdecimal" gets bigdecimal-pure's class
 ```
 
-Reading images and PDFs under ruby.wasm needs a qr_reader newer than 0.0.2
-(not yet released); 0.0.2 crashes the wasm VM inside zlib on PNGs and
-compressed PDFs. Parsing payloads does not use qr_reader at all.
+Reading images and PDFs needs qr_reader 0.0.3 or newer (`SwissQr.read`
+raises `SwissQr::ReaderUnavailable` with an older one). Parsing payloads does
+not use qr_reader at all.
 
 Under Bundler this does not work yet: swiss_qr's dependency installs the
 `bigdecimal` gem itself (Bundler cannot substitute one gem for another), and

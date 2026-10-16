@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "pathname"
-require "stringio"
-
 # QR code readers and SwissQr.read / SwissQr.read_all.
 module SwissQr
   # Pluggable QR code readers: turn an image or PDF into the texts of the QR
@@ -43,10 +40,10 @@ module SwissQr
     #
     #   SwissQr.reader = SwissQr::Reader::QrReaderAdapter.new(try_harder: false)
     class QrReaderAdapter
-      # qr_reader 0.0.2 raises this for a PDF with neither raster images nor
-      # vector-drawn QR codes (e.g. a text-only invoice page) instead of
-      # returning no codes.
-      NO_IMAGES = "PDF contains no raster images"
+      # The oldest qr_reader this adapter works with. Older releases sniff
+      # Strings (image bytes or path), raise for PDFs without any code, and
+      # crash ruby.wasm on PNGs.
+      MINIMUM_QR_READER = "0.0.3"
 
       attr_reader :options
 
@@ -56,14 +53,14 @@ module SwissQr
 
       def decode_all(input)
         reader = qr_reader
-        nothing_on_pdf { reader.decode_all(path_or_io(input), **options) }
+        reader.decode_all(input, **options)
       end
 
       # Yields the text of each code as soon as it is decoded, so that
       # SwissQr.read can stop at the first QR-bill of a long PDF.
       def each_text(input, &)
         reader = qr_reader
-        nothing_on_pdf { reader.scan(path_or_io(input), **options) { |result| yield result.text } }
+        reader.scan(input, **options) { |result| yield result.text }
       end
 
       def inspect
@@ -73,30 +70,24 @@ module SwissQr
 
       private
 
-      # qr_reader 0.0.2 sniffs Strings (image bytes or path); a Pathname is
-      # always read as a path. It also asks IOs for #to_path before reading
-      # them, which every IO has since Ruby 3.2 ($stdin's is "<STDIN>"), so
-      # IOs other than files are handed over as a StringIO.
-      def path_or_io(input)
-        return Pathname(input) if input.is_a?(String)
-        return StringIO.new(input.read || "") if input.is_a?(IO) && !input.is_a?(File)
-
-        input
-      end
-
-      def nothing_on_pdf
-        yield
-      rescue ::QrReader::UnsupportedImageError => e
-        raise unless e.message == NO_IMAGES
-
-        []
-      end
-
       def qr_reader
-        require "qr_reader"
+        begin
+          require "qr_reader"
+        rescue LoadError => e
+          raise ReaderUnavailable, "#{INSTALL_HINT} (#{e.message})"
+        end
+        check_version(::QrReader::VERSION)
         ::QrReader
-      rescue LoadError => e
-        raise ReaderUnavailable, "#{INSTALL_HINT} (#{e.message})"
+      end
+
+      # Compared without Gem::Version, so that this also works where
+      # RubyGems is not loaded (ruby.wasm, --disable-gems).
+      def check_version(version)
+        numbers = ->(v) { v.to_s.split(".").map(&:to_i) }
+        return if (numbers.call(version) <=> numbers.call(MINIMUM_QR_READER)) >= 0
+
+        raise ReaderUnavailable, "qr_reader #{version} is too old: swiss_qr needs qr_reader " \
+                                 "#{MINIMUM_QR_READER} or newer (gem update qr_reader / bundle update qr_reader)"
       end
     end
 
