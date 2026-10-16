@@ -21,6 +21,11 @@ coding type `1`, trailer `EPD`). It can also find the code in images and PDFs.
   gem, which is optional and loaded only when you call `SwissQr.read`. Any
   other decoder (ZXing, ZBar, a cloud API, ...) can be plugged in instead.
 - **`swiss_qr` command** that prints bills as JSON.
+- **Runs on every major Ruby implementation:** MRI (CRuby) 3.3 to 4.0, JRuby 10,
+  TruffleRuby and ruby.wasm (with
+  [`bigdecimal-pure`](https://rubygems.org/gems/bigdecimal-pure)). All of them
+  run the test suite in CI except ruby.wasm, which was tested by hand; see
+  [Ruby versions and platforms](#ruby-versions-and-platforms).
 
 ## Installation
 
@@ -33,16 +38,16 @@ or `gem install swiss_qr qr_reader`.
 
 ### Ruby versions and platforms
 
-Ruby 3.2 or newer (the value objects are `Data` classes, new in 3.2). Both
-gems are plain Ruby; neither has a C extension of its own.
+Ruby 3.3 or newer. Both gems are plain Ruby; neither has a C extension of its
+own.
 
 | Ruby | |
 |---|---|
-| MRI 3.2, 3.3, 3.4, 4.0 | tested |
+| MRI 3.3, 3.4, 4.0 | tested |
 | TruffleRuby 25 | tested |
 | JRuby 10 | tested |
 | ruby.wasm (Ruby 4.0) | works with `bigdecimal-pure`, see below |
-| JRuby 9.4 and older, MRI 3.1 and older | not supported (no `Data`) |
+| MRI 3.2 and older, JRuby 9.4 and older | not supported (3.2 is end of life) |
 
 Amounts, VAT rates and discounts are `BigDecimal`s, so swiss_qr depends on
 the `bigdecimal` gem. That gem is a C extension. Where it cannot be built or
