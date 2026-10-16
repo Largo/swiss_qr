@@ -29,7 +29,46 @@ bundle add swiss_qr
 bundle add qr_reader    # optional: only needed for SwissQr.read / read_all and the CLI
 ```
 
-or `gem install swiss_qr qr_reader`. Requires Ruby 3.2 or newer.
+or `gem install swiss_qr qr_reader`.
+
+### Ruby versions and platforms
+
+Ruby 3.2 or newer (the value objects are `Data` classes, new in 3.2). Both
+gems are plain Ruby; neither has a C extension of its own.
+
+| Ruby | |
+|---|---|
+| MRI 3.2, 3.3, 3.4, 4.0 | tested |
+| TruffleRuby 25 | tested |
+| JRuby 10 | tested |
+| ruby.wasm (Ruby 4.0) | works with `bigdecimal-pure`, see below |
+| JRuby 9.4 and older, MRI 3.1 and older | not supported (no `Data`) |
+
+Amounts, VAT rates and discounts are `BigDecimal`s, so swiss_qr depends on
+the `bigdecimal` gem. That gem is a C extension. Where it cannot be built or
+loaded, ruby.wasm above all, use
+[`bigdecimal-pure`](https://rubygems.org/gems/bigdecimal-pure) instead: a
+`BigDecimal` written in Ruby on top of `Rational`, exact like the original for
+everything swiss_qr does. Its `require "bigdecimal"` loads the native
+extension when there is one, and the pure class otherwise.
+
+Put its `lib` on the load path ahead of swiss_qr, which is how gems are
+usually loaded into ruby.wasm (for example with the `@ruby/4.0-wasm-wasi`
+npm package):
+
+```ruby
+$LOAD_PATH.unshift "/gems/bigdecimal-pure/lib", "/gems/swiss_qr/lib", "/gems/qr_reader/lib"
+require "swiss_qr"   # its require "bigdecimal" gets bigdecimal-pure's class
+```
+
+Reading images and PDFs under ruby.wasm needs a qr_reader newer than 0.0.2
+(not yet released); 0.0.2 crashes the wasm VM inside zlib on PNGs and
+compressed PDFs. Parsing payloads does not use qr_reader at all.
+
+Under Bundler this does not work yet: swiss_qr's dependency installs the
+`bigdecimal` gem itself (Bundler cannot substitute one gem for another), and
+bigdecimal-pure 0.1.0 does not fall back to its pure class when that gem's
+Ruby files are present but its C extension cannot be loaded.
 
 ## Parsing a payload
 
