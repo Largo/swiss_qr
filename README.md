@@ -384,6 +384,19 @@ includes `qr_reader`, `rqrcode` and `chunky_png` for the image tests). Then run
 interactive prompt. `test/fixtures/README.md` explains how the fixtures are
 generated.
 
+### Releasing
+
+Releases are published from GitHub Actions with RubyGems
+[trusted publishing](https://guides.rubygems.org/trusted-publishing/) (no API
+key is stored anywhere), and the gem carries a Sigstore attestation, so
+RubyGems.org shows which repository, workflow and commit built it. Bump
+`SwissQr::VERSION`, update `CHANGELOG.md`, then:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
