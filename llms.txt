@@ -1,0 +1,27 @@
+# swiss_qr
+
+> swiss_qr is a pure-Ruby gem that reads, parses and validates the Swiss QR Code on Swiss QR-bills (QR-Rechnung, QR-facture, QR-fattura), from the payload text or straight from images and PDFs. Together with the pure-Ruby qr_reader gem it needs no native extensions of its own: no ImageMagick, zbar, ZXing or Node.js. It runs on MRI (CRuby) 3.3 to 4.0, JRuby, TruffleRuby and ruby.wasm. Install with `gem install swiss_qr qr_reader`. MIT licensed.
+
+Key facts:
+
+- Reading: `SwissQr.read(path_or_io)` returns the first QR-bill as a `SwissQr::Bill` (or nil), `SwissQr.read_all` every one; other QR codes on the page are skipped. Formats: PNG, JPEG, JPEG 2000, GIF, BMP, PNM, TIFF (including fax), scanned and generated PDFs. A String argument is always a file path; image bytes go in as an IO (`StringIO.new(bytes)`, an upload's Tempfile).
+- Parsing: `SwissQr.parse(text, strict: true)` validates every rule of the SIX Swiss Implementation Guidelines for the QR-bill 2.3 (payload `SPC` / `0200`; the new rule of 2.4 is reported as a warning) and raises `SwissQr::InvalidPayload` listing each problem; `strict: false` returns the bill with `errors` and `warnings`. `SwissQr.valid?(text)` answers true/false.
+- Values: immutable `Data` objects. `Bill#iban`, `#amount` (BigDecimal), `#currency`, `#creditor` / `#debtor` (`SwissQr::Address`), `#reference_type` (`:qrr`, `:scor`, `:non`), `#reference`, `#unstructured_message`, `#billing_information` (Swico S1, parsed), `#alternative_procedures`, `#to_h`, `#as_json`.
+- Helpers: `SwissQr::Iban.valid?`, `.qr_iban?`, `.format`; `SwissQr::Reference.valid_qrr?`, `.valid_scor?`, `.build_qrr`, `.build_scor`.
+- Pluggable reader: qr_reader 0.0.3+ is the default (optional, loaded on first use); any object with `decode_all(input)` or any callable can replace it (`SwissQr.reader = ...` or `reader:`).
+- Platforms: the full test suite runs in CI on MRI 3.3, 3.4, 4.0, JRuby 10 and TruffleRuby. ruby.wasm needs the pure-Ruby `bigdecimal-pure` gem on the load path, since the bigdecimal C extension is unavailable there.
+- Does not generate QR-bills; for that use qr-bills or prawn-swiss_qr_bill.
+- Releases are built on GitHub Actions and signed with Sigstore (`gh attestation verify swiss_qr-<version>.gem -R Largo/swiss_qr`).
+
+## Docs
+
+- [README](https://github.com/Largo/swiss_qr/blob/main/README.md): usage, readers, validation, value objects, command line, FAQ, comparison with other gems
+- [Specification notes](https://github.com/Largo/swiss_qr/blob/main/docs/SPEC_NOTES.md): every QR-bill rule with its source in the SIX documents
+- [Changelog](https://github.com/Largo/swiss_qr/blob/main/CHANGELOG.md): release history
+
+## Optional
+
+- [RubyGems page](https://rubygems.org/gems/swiss_qr)
+- [qr_reader](https://github.com/Largo/qr_reader): the pure-Ruby QR code reader used by default
+- [bigdecimal-pure](https://github.com/Largo/bigdecimal-pure): BigDecimal in pure Ruby, for ruby.wasm
+- [Issues](https://github.com/Largo/swiss_qr/issues)

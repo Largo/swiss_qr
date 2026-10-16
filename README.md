@@ -1,13 +1,57 @@
-# SwissQr
+# swiss_qr — Swiss QR-bill (QR-Rechnung) parser and reader for Ruby, pure Ruby
 
-Parses and validates the Swiss QR Code printed on a Swiss QR-bill
-("QR-Rechnung", "QR-facture", "QR-fattura"), as defined by the SIX *Swiss
-Implementation Guidelines for the QR-bill* (QR type `SPC`, version `0200`,
-coding type `1`, trailer `EPD`). It can also find the code in images and PDFs.
+[![Gem Version](https://badge.fury.io/rb/swiss_qr.svg)](https://rubygems.org/gems/swiss_qr)
+[![CI](https://github.com/Largo/swiss_qr/actions/workflows/main.yml/badge.svg)](https://github.com/Largo/swiss_qr/actions/workflows/main.yml)
 
-- **Parser with no dependencies** other than `bigdecimal`. Values come back as
-  immutable `Data` objects: `SwissQr::Bill`, `SwissQr::Address` and
-  `SwissQr::BillingInformation` (Swico/SIX "S1" billing information).
+**swiss_qr reads, parses and validates the Swiss QR Code on Swiss QR-bills
+("QR-Rechnung", "QR-facture", "QR-fattura") in pure Ruby: from the payload
+text, or straight from scanned invoices, photos and PDFs.** Together with the
+pure-Ruby [`qr_reader`](https://github.com/Largo/qr_reader) gem it needs no
+native extensions of its own: no ImageMagick, zbar, ZXing or Node.js. It
+runs wherever Ruby runs: MRI (CRuby) 3.3 to 4.0, **JRuby**, **TruffleRuby**
+and **ruby.wasm** in the browser.
+
+It follows the SIX *Swiss Implementation Guidelines for the QR-bill* 2.3
+(QR type `SPC`, version `0200`; the one new rule of 2.4 is reported as a
+warning) and checks every rule, IBAN, QR-IBAN and reference check digits
+included.
+
+Quick start:
+
+```bash
+gem install swiss_qr qr_reader
+```
+
+```ruby
+require "swiss_qr"
+
+bill = SwissQr.read("invoice.pdf")   # first QR-bill in a PDF, PNG, JPEG, TIFF, ... (or nil)
+bill.iban                            # => "CH4431999123000889012"
+bill.amount                          # => 0.194975e4 (BigDecimal)
+bill.reference                       # => "210000000003139471430009017"
+bill.creditor.name                   # => "Max Muster & Söhne"
+
+SwissQr.parse(payload_text)          # the decoded text of the code, validated
+SwissQr.valid?(payload_text)         # => true / false
+```
+
+```bash
+swiss_qr invoice.pdf                 # every QR-bill in the file as JSON
+```
+
+See the [FAQ](#faq) and the [comparison with other Ruby QR-bill gems](#comparison-with-other-ruby-qr-bill-gems).
+
+- **Pure Ruby, no native code of its own:** neither swiss_qr nor qr_reader
+  has a C extension or calls an external program. The one native dependency is
+  `bigdecimal`, which ships with Ruby; for ruby.wasm there is the pure-Ruby
+  [`bigdecimal-pure`](https://rubygems.org/gems/bigdecimal-pure).
+- **Runs on every major Ruby implementation:** MRI 3.3 to 4.0, JRuby 10 and
+  TruffleRuby run the full test suite in CI; ruby.wasm (Ruby 4.0) was tested
+  by hand. See [Ruby versions and platforms](#ruby-versions-and-platforms).
+- **Values come back as immutable `Data` objects:** `SwissQr::Bill`,
+  `SwissQr::Address` and `SwissQr::BillingInformation` (Swico/SIX "S1"
+  billing information, parsed into invoice number, dates, VAT and payment
+  conditions).
 - **Checks every payload rule:** header, IBAN and QR-IBAN check digits, the
   reference type against the account, QR reference (modulo 10 recursive), ISO
   11649 creditor reference (modulo 97), amount, currency, addresses, the
@@ -17,15 +61,15 @@ coding type `1`, trailer `EPD`). It can also find the code in images and PDFs.
   (of either kind), trailing empty lines, a byte order mark and blanks after
   free text are accepted (SIX's own samples have some of these).
 - **Reads QR codes from images and PDFs** through a pluggable reader. By
-  default this is the pure-Ruby [`qr_reader`](https://rubygems.org/gems/qr_reader)
-  gem, which is optional and loaded only when you call `SwissQr.read`. Any
-  other decoder (ZXing, ZBar, a cloud API, ...) can be plugged in instead.
+  default this is [`qr_reader`](https://rubygems.org/gems/qr_reader) (PNG,
+  JPEG, JPEG 2000, GIF, BMP, PNM, TIFF including fax, scanned and generated
+  PDFs), loaded only when you call `SwissQr.read`. Any other decoder (ZXing,
+  ZBar, a cloud API, ...) can be plugged in instead.
 - **`swiss_qr` command** that prints bills as JSON.
-- **Runs on every major Ruby implementation:** MRI (CRuby) 3.3 to 4.0, JRuby 10,
-  TruffleRuby and ruby.wasm (with
-  [`bigdecimal-pure`](https://rubygems.org/gems/bigdecimal-pure)). All of them
-  run the test suite in CI except ruby.wasm, which was tested by hand; see
-  [Ruby versions and platforms](#ruby-versions-and-platforms).
+- **Signed releases:** every gem is built on GitHub Actions and published with
+  a Sigstore attestation (shown on rubygems.org as "Built and signed on GitHub
+  Actions"); check a download with
+  `gh attestation verify swiss_qr-<version>.gem -R Largo/swiss_qr`.
 
 ## Installation
 
@@ -375,6 +419,79 @@ go to stderr.
 | 2 | Usage error, unreadable file, or no QR code reader (`gem install qr_reader`) |
 
 The command uses `SwissQr.reader`, so it needs `qr_reader` to be installed.
+
+## FAQ
+
+### How do I read a Swiss QR-bill from a PDF invoice in Ruby?
+
+`gem install swiss_qr qr_reader`, then `SwissQr.read("invoice.pdf")` for the
+first QR-bill or `SwissQr.read_all("invoice.pdf")` for all of them. Scanned
+PDFs (JPEG, CCITT fax, JBIG2 images) and generated PDFs (codes drawn as
+vector graphics or set in a barcode font) both work, as do PNG, JPEG,
+JPEG 2000, GIF, BMP, PNM and TIFF. Other QR codes on the page are skipped.
+
+### Do I need ImageMagick, zbar, ZXing, a C compiler or Node.js?
+
+No. swiss_qr and qr_reader are pure Ruby and call no external programs.
+`gem install` compiles nothing on a standard Ruby, and the same code runs on
+JRuby and TruffleRuby. For more speed on MRI, enable YJIT or add the optional
+`qr_reader-native` gem.
+
+### Does it work on JRuby, TruffleRuby and ruby.wasm?
+
+Yes. CI runs the full test suite on MRI 3.3, 3.4 and 4.0, JRuby 10 and
+TruffleRuby. Under ruby.wasm (Ruby 4.0) put
+[`bigdecimal-pure`](https://rubygems.org/gems/bigdecimal-pure) on the load
+path, since the `bigdecimal` C extension is not available there; see
+[Ruby versions and platforms](#ruby-versions-and-platforms).
+
+### How do I validate a QR-IBAN, QR reference or creditor reference in Ruby?
+
+`SwissQr.valid?(payload)` checks a whole payload. For single values:
+`SwissQr::Iban.valid?`, `SwissQr::Iban.qr_iban?`,
+`SwissQr::Reference.valid_qrr?` and `SwissQr::Reference.valid_scor?`;
+`SwissQr::Reference.build_qrr` and `build_scor` add the check digits. See
+[Helpers](#helpers).
+
+### How do I read an uploaded invoice in Rails?
+
+Pass the upload as an IO, for example `SwissQr.read(params[:invoice].tempfile)`,
+or bytes as `SwissQr.read(StringIO.new(bytes))`. A `String` is always taken as
+a file path, never as image data, so bytes from a client can never be
+mistaken for a path on the server.
+
+### Is it safe on untrusted input?
+
+For any String, the parser raises only `SwissQr::Error` subclasses, never
+`NoMethodError` or encoding errors; it was fuzzed with malformed payloads in
+many encodings. Input longer than any QR code can hold (4096 bytes) is rejected
+before parsing.
+
+### Can it create QR-bills?
+
+No, swiss_qr reads and validates them. To generate QR-bills, use
+[`qr-bills`](https://rubygems.org/gems/qr-bills) (HTML or image) or
+[`prawn-swiss_qr_bill`](https://rubygems.org/gems/prawn-swiss_qr_bill) (PDF
+with Prawn). swiss_qr can check what they produce.
+
+### Which version of the specification does it follow?
+
+The SIX Implementation Guidelines 2.3, in force since November 2025. Version
+2.4 (from 14 November 2026) keeps the payload version `0200`, so the two
+cannot be told apart; its new rule (QR-IBAN with QR reference only in CHF) is
+reported as a warning. Combined ("K") addresses, removed in 2.3, are still
+parsed with a warning. See [Supported specification](#supported-specification).
+
+## Comparison with other Ruby QR-bill gems
+
+| | swiss_qr | [swiss_qr_bill](https://rubygems.org/gems/swiss_qr_bill) | [qr-bills](https://rubygems.org/gems/qr-bills) |
+|---|---|---|---|
+| Purpose | read and validate | read | generate |
+| Reads codes from images and PDFs | yes, in pure Ruby (qr_reader), or any reader you plug in | yes, through Node.js (jsQR via `qr_code_scanner`) | — |
+| Needs besides Ruby | nothing | Node.js and npm packages | — |
+| Validates the payload | every rule of the guidelines, with errors per field | header only | its own input |
+| Amount | `BigDecimal` | `Float` | — |
+| JRuby, TruffleRuby, ruby.wasm | tested in CI (ruby.wasm by hand) | not stated; needs Node.js | — |
 
 ## Development
 

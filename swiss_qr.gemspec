@@ -8,15 +8,19 @@ Gem::Specification.new do |spec|
   spec.authors = ["Andi Idogawa"]
   spec.email = ["web@idogawa.com"]
 
-  spec.summary = "Parse and validate Swiss QR-bill payloads (QR-Rechnung, QR-facture, QR-fattura)"
+  spec.summary = "Swiss QR-bill (QR-Rechnung, QR-facture, QR-fattura) parser and reader in pure Ruby, " \
+                 "no native extensions; runs on MRI, JRuby, TruffleRuby and ruby.wasm"
   spec.description = <<~DESC.tr("\n", " ").strip
-    Parses the payload of the Swiss QR Code on a Swiss QR-bill (QR-Rechnung, QR-facture,
-    QR-fattura; Switzerland and Liechtenstein) per the SIX Swiss Implementation
-    Guidelines for the QR-bill ("SPC"/"0200") into immutable value objects: account and
-    QR-IBAN, creditor and debtor addresses, amount, currency, QR/creditor reference,
-    message, Swico S1 billing information and alternative procedures. Validates every
-    rule of the guidelines, including IBAN, QR reference and ISO 11649 check digits.
-    Optionally reads the QR codes from images and PDFs with the qr_reader gem.
+    Reads, parses and validates the Swiss QR Code on Swiss QR-bills (QR-Rechnung,
+    QR-facture, QR-fattura; Switzerland and Liechtenstein), from the payload text or
+    straight from scanned invoices, photos and PDFs. Pure Ruby: together with the
+    pure-Ruby qr_reader gem it needs no native extensions, no ImageMagick, zbar, ZXing
+    or Node.js, and runs on MRI 3.3+, JRuby, TruffleRuby and ruby.wasm. Validates every
+    rule of the SIX Swiss Implementation Guidelines for the QR-bill (IBAN, QR-IBAN, QR
+    reference and ISO 11649 creditor reference check digits included) and returns
+    immutable value objects: IBAN, creditor and debtor addresses, amount (BigDecimal),
+    currency, reference, message, Swico S1 billing information and alternative
+    procedures. Includes a swiss_qr command that prints bills as JSON.
   DESC
   spec.homepage = "https://github.com/largo/swiss_qr"
   spec.license = "MIT"
